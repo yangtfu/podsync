@@ -4,10 +4,12 @@ go 1.21
 
 require (
 	github.com/BrianHicks/finch v0.0.0-20140409222414-419bd73c29ec
+	github.com/CuteReimu/bilibili v0.0.0-20240322083539-bb5cd963c0e3
 	github.com/aws/aws-sdk-go v1.44.144
 	github.com/dgraph-io/badger v1.6.2
 	github.com/eduncan911/podcast v1.4.2
 	github.com/gilliek/go-opml v1.0.0
+	github.com/go-resty/resty/v2 v2.12.0 // indirect
 	github.com/golang/mock v1.6.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jessevdk/go-flags v1.5.0

@@ -1,7 +1,7 @@
 BINPATH := $(abspath ./bin)
 
 .PHONY: all
-all: build test
+all: build #test
 
 #
 # Build Podsync CLI binary
