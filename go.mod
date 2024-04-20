@@ -1,6 +1,8 @@
 module github.com/mxpv/podsync
 
-go 1.21
+go 1.22
+
+toolchain go1.22.1
 
 require (
 	github.com/BrianHicks/finch v0.0.0-20140409222414-419bd73c29ec
@@ -28,6 +30,7 @@ require (
 
 require (
 	github.com/AndreasBriese/bbloom v0.0.0-20190825152654-46b345b51c96 // indirect
+	github.com/Baozisoftware/qrcode-terminal-go v0.0.0-20170407111555-c0650d8dff0f // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgraph-io/ristretto v0.0.2 // indirect
@@ -36,6 +39,8 @@ require (
 	github.com/grafov/m3u8 v0.11.1 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	golang.org/x/net v0.23.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect
