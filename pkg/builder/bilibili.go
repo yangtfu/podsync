@@ -7,7 +7,6 @@ import (
 	// "fmt"
 	"sort"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/CuteReimu/bilibili"
@@ -52,56 +51,55 @@ func (b *BilibiliBuilder) getVideoInfo(bvid string) (*model.Episode, error) {
 
 func (b *BilibiliBuilder) queryFeed(feed *model.Feed, info *model.Info) error {
 
-	mid, err := strconv.Atoi(strings.Split(info.ItemID, ":")[0])
-	if err != nil {
-		return err
-	}
-
 	switch info.LinkType {
 	case model.TypeChannel:
-		// 查询usercard
-		getUserCardParam := bilibili.GetUserCardParam{Mid: mid, Photo: false}
-		userCard, err := b.client.GetUserCard(getUserCardParam)
-		if err != nil {
-			return err
-		}
+		// mid, err := strconv.Atoi(strings.Split(info.ItemID, ":")[0])
+		// if err != nil {
+		// 	return err
+		// }
+		// // 查询usercard
+		// getUserCardParam := bilibili.GetUserCardParam{Mid: mid, Photo: false}
+		// userCard, err := b.client.GetUserCard(getUserCardParam)
+		// if err != nil {
+		// 	return err
+		// }
 
-		feed.Author = userCard.Card.Name
-		feed.CoverArt = userCard.Card.Face
-		feed.Title = userCard.Card.Name
-		feed.Description = userCard.Card.Sign
+		// feed.Author = userCard.Card.Name
+		// feed.CoverArt = userCard.Card.Face
+		// feed.Title = userCard.Card.Name
+		// feed.Description = userCard.Card.Sign
 
-		// 查询合集动态
-		var videoCollectionInfo *bilibili.VideoCollectionInfo
+		// // 查询合集动态
+		// var videoCollectionInfo *bilibili.VideoCollectionInfo
 
-		sid, err := strconv.Atoi(strings.Split(info.ItemID, ":")[1])
-		getVideoCollectionInfoParam := bilibili.GetVideoCollectionInfoParam{
-			Mid:      mid,
-			SeriesId: sid,
-			Pn:       1,
-			Ps:       feed.PageSize,
-		}
-		if err == nil {
-			videoCollectionInfo, err = b.client.GetVideoCollectionInfo(getVideoCollectionInfoParam)
-			if err != nil || len(videoCollectionInfo.Archives) == 0 {
-				return err
-			}
-		}
-		feed.PubDate = time.Unix(int64(videoCollectionInfo.Archives[0].Pubdate), 0)
-		// feed.Description = fmt.Sprintf("%s:%s", userCard.Card.Sign, archiveList.Meta.Description)
-		added := 0
-		for _, item := range videoCollectionInfo.Archives {
-			e, err := b.getVideoInfo(item.Bvid)
-			if err != nil {
-				return err
-			}
-			feed.Episodes = append(feed.Episodes, e)
-			added++
+		// sid, err := strconv.Atoi(strings.Split(info.ItemID, ":")[1])
+		// getVideoCollectionInfoParam := bilibili.GetVideoCollectionInfoParam{
+		// 	Mid:      mid,
+		// 	SeriesId: sid,
+		// 	Pn:       1,
+		// 	Ps:       feed.PageSize,
+		// }
+		// if err == nil {
+		// 	videoCollectionInfo, err = b.client.GetVideoCollectionInfo(getVideoCollectionInfoParam)
+		// 	if err != nil || len(videoCollectionInfo.Archives) == 0 {
+		// 		return err
+		// 	}
+		// }
+		// feed.PubDate = time.Unix(int64(videoCollectionInfo.Archives[0].Pubdate), 0)
+		// // feed.Description = fmt.Sprintf("%s:%s", userCard.Card.Sign, archiveList.Meta.Description)
+		// added := 0
+		// for _, item := range videoCollectionInfo.Archives {
+		// 	e, err := b.getVideoInfo(item.Bvid)
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	feed.Episodes = append(feed.Episodes, e)
+		// 	added++
 
-			if added >= feed.PageSize || added >= videoCollectionInfo.Page.Total {
-				return nil
-			}
-		}
+		// 	if added >= feed.PageSize || added >= videoCollectionInfo.Page.Total {
+		// 		return nil
+		// 	}
+		// }
 		return nil
 	case model.TypeUser:
 		// 查询usercard
