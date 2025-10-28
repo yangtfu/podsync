@@ -35,7 +35,7 @@ func (l *Local) Open(name string) (http.File, error) {
 	return os.Open(path)
 }
 
-func (l *Local) Delete(_ctx context.Context, name string) error {
+func (l *Local) Delete(_ context.Context, name string) error {
 	path := filepath.Join(l.rootDir, name)
 	if err := os.Remove(path); err != nil {
 		return fmt.Errorf("failed to delete file %s: %w", path, err)
@@ -43,7 +43,7 @@ func (l *Local) Delete(_ctx context.Context, name string) error {
 	return nil
 }
 
-func (l *Local) Create(_ctx context.Context, name string, reader io.Reader) (int64, error) {
+func (l *Local) Create(_ context.Context, name string, reader io.Reader) (int64, error) {
 	var (
 		logger = log.WithField("name", name)
 		path   = filepath.Join(l.rootDir, name)
@@ -79,7 +79,7 @@ func (l *Local) copyFile(source io.Reader, destinationPath string) (int64, error
 	return written, nil
 }
 
-func (l *Local) Size(_ctx context.Context, name string) (int64, error) {
+func (l *Local) Size(_ context.Context, name string) (int64, error) {
 	file, err := l.Open(name)
 	if err != nil {
 		return 0, err

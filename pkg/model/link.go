@@ -5,6 +5,8 @@ type Type string
 const (
 	TypeChannel  = Type("channel")
 	TypePlaylist = Type("playlist")
+	TypeSeason   = Type("season")
+	TypeSeries   = Type("series")
 	TypeUser     = Type("user")
 	TypeGroup    = Type("group")
 	TypeHandle   = Type("handle")
@@ -13,6 +15,7 @@ const (
 type Provider string
 
 const (
+	ProviderBilibili   = Provider("bilibili")
 	ProviderYoutube    = Provider("youtube")
 	ProviderVimeo      = Provider("vimeo")
 	ProviderSoundcloud = Provider("soundcloud")

@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"fmt"
 	"net/url"
 	"strings"
 
@@ -16,6 +17,19 @@ func ParseURL(link string) (model.Info, error) {
 	}
 
 	info := model.Info{}
+
+	if strings.HasSuffix(parsed.Host, "bilibili.com") {
+		kind, id, err := parseBilibiliURL(parsed)
+		if err != nil {
+			return model.Info{}, err
+		}
+
+		info.Provider = model.ProviderBilibili
+		info.LinkType = kind
+		info.ItemID = id
+
+		return info, nil
+	}
 
 	if strings.HasSuffix(parsed.Host, "youtube.com") {
 		kind, id, err := parseYoutubeURL(parsed)
@@ -160,6 +174,40 @@ func parseYoutubeURL(parsed *url.URL) (model.Type, string, error) {
 	}
 
 	return "", "", errors.New("unsupported link format")
+}
+
+func parseBilibiliURL(parsed *url.URL) (model.Type, string, error) {
+	path := parsed.EscapedPath()
+
+	// https://space.bilibili.com/37737161/lists/2800550?type=series
+	// https://space.bilibili.com/1607984338/lists/36067?type=season
+	if strings.Contains(path, "lists") {
+		var kind model.Type
+		if parsed.Query().Get("type") == "series" {
+			kind = model.TypeSeries
+		} else if parsed.Query().Get("type") == "season" {
+			kind = model.TypeSeason
+		} else {
+			return "", "", errors.New("invalid bilibili list type")
+		}
+		parts := strings.Split(parsed.EscapedPath(), "/")
+		id := fmt.Sprintf("%s:%s", parts[1], parts[3])
+		return kind, id, nil
+	}
+
+	// https://space.bilibili.com/7380321
+	kind := model.TypeUser
+	subdomain := strings.Split(parsed.Host, ".")[0]
+	parts := strings.Split(parsed.EscapedPath(), "/")
+	if len(parts) <= 1 || subdomain != "space" {
+		return "", "", errors.New("invalid bilibili user path")
+	}
+	id := parts[1]
+	if id == "" {
+		return "", "", errors.New("invalid id")
+	}
+
+	return kind, id, nil
 }
 
 func parseVimeoURL(parsed *url.URL) (model.Type, string, error) {

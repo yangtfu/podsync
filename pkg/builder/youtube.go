@@ -200,11 +200,11 @@ func (yt *YouTubeBuilder) GetVideoCount(ctx context.Context, info *model.Info) (
 
 	case model.TypePlaylist:
 		// Cost: 3 units
-		if playlist, err := yt.listPlaylists(ctx, info.ItemID, "", "id,contentDetails"); err != nil {
+		playlist, err := yt.listPlaylists(ctx, info.ItemID, "", "id,contentDetails")
+		if err != nil {
 			return 0, err
-		} else { // nolint:golint
-			return uint64(playlist.ContentDetails.ItemCount), nil
 		}
+		return uint64(playlist.ContentDetails.ItemCount), nil
 
 	default:
 		return 0, errors.New("unsupported link format")
@@ -240,13 +240,11 @@ func (yt *YouTubeBuilder) queryFeed(ctx context.Context, feed *model.Feed, info 
 		}
 
 		feed.ItemID = channel.ContentDetails.RelatedPlaylists.Uploads
-
-		if date, err := yt.parseDate(channel.Snippet.PublishedAt); err != nil {
+		date, err := yt.parseDate(channel.Snippet.PublishedAt)
+		if err != nil {
 			return err
-		} else { // nolint:golint
-			feed.PubDate = date
 		}
-
+		feed.PubDate = date
 		thumbnails = channel.Snippet.Thumbnails
 
 	case model.TypePlaylist:

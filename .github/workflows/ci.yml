@@ -4,10 +4,10 @@ name: CI
 on:
   push:
     branches:
-      - main
+      - bilibili
   pull_request:
     branches:
-      - main
+      - bilibili
 
 jobs:
   build:
