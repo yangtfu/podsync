@@ -139,6 +139,9 @@ func main() {
 	log.Debug("creating key providers")
 	keys := map[model.Provider]feed.KeyProvider{}
 	for name, list := range cfg.Tokens {
+		if name == "bilibili" {
+			break // Bilibili does not require API keys
+		}
 		provider, err := feed.NewKeyProvider(list)
 		if err != nil {
 			log.WithError(err).Fatalf("failed to create key provider for %q", name)

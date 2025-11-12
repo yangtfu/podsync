@@ -10,7 +10,7 @@ COPY . .
 RUN make build
 
 # Download yt-dlp
-RUN wget -O /usr/bin/yt-dlp https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp && \
+RUN wget -O /usr/bin/yt-dlp https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp && \
     chmod a+rwx /usr/bin/yt-dlp
 
 # Alpine 3.22 will go EOL on 2027-05-01
