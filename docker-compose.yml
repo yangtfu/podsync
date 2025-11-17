@@ -1,7 +1,7 @@
 services:
   podsync:
     container_name: podsync
-    image: mxpv/podsync:latest
+    image: yangtfu/podsync:latest
     restart: always
     ports:
       - 8080:8080

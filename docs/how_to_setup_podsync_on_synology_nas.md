@@ -58,7 +58,7 @@ but you don't need to do this.
 5. Copy and paste the following command:
 
 ```bash
-docker pull mxpv/podsync:latest
+docker pull yangtfu/podsync:latest
 ```
 
 Docker will download the latest version of Podsync.
@@ -70,7 +70,7 @@ docker run \
     -p 9090:9090 \
     -v /volume1/web/podsync:/app/data/ \
     -v /volume1/docker/podsync/podsync-config.toml:/app/config.toml \
-    mxpv/podsync:latest
+    yangtfu/podsync:latest
 ```
 
 This will install a container in Docker and run it. Podsync will load and read your config.toml file and start downloading episodes.

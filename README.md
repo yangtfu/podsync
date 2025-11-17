@@ -2,11 +2,11 @@
 
 ![Podsync](docs/img/logo.png)
 
-[![](https://github.com/mxpv/podsync/workflows/CI/badge.svg)](https://github.com/mxpv/podsync/actions?query=workflow%3ACI)
-[![Nightly](https://github.com/mxpv/podsync/actions/workflows/nightly.yml/badge.svg)](https://github.com/mxpv/podsync/actions/workflows/nightly.yml)
-[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/mxpv/podsync)](https://github.com/mxpv/podsync/releases)
-[![Go Report Card](https://goreportcard.com/badge/github.com/mxpv/podsync)](https://goreportcard.com/report/github.com/mxpv/podsync)
-[![GitHub Sponsors](https://img.shields.io/github/sponsors/mxpv)](https://github.com/sponsors/mxpv)
+[![](https://github.com/yangtfu/podsync/workflows/CI/badge.svg)](https://github.com/yangtfu/podsync/actions?query=workflow%3ACI)
+[![Nightly](https://github.com/yangtfu/podsync/actions/workflows/nightly.yml/badge.svg)](https://github.com/yangtfu/podsync/actions/workflows/nightly.yml)
+[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/yangtfu/podsync)](https://github.com/yangtfu/podsync/releases)
+[![Go Report Card](https://goreportcard.com/badge/github.com/yangtfu/podsync)](https://goreportcard.com/report/github.com/yangtfu/podsync)
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/yangtfu)](https://github.com/sponsors/yangtfu)
 [![Patreon](https://img.shields.io/badge/support-patreon-E6461A.svg)](https://www.patreon.com/podsync)
 
 Podsync - is a simple, free service that lets you listen to any YouTube / Vimeo channels, playlists or user videos in
@@ -56,7 +56,7 @@ brew install yt-dlp ffmpeg go
 Nightly builds uploaded every midnight from the `main` branch and available for testing:
 
 ```bash
-$ docker run -it --rm ghcr.io/mxpv/podsync:nightly
+$ docker run -it --rm ghcr.io/yangtfu/podsync:nightly
 ```
 
 ### 🔑 Access tokens
@@ -124,7 +124,7 @@ Podsync supports the following environment variables for configuration and API k
 Make sure you have created the file `config.toml`. Also note the location of the `data_dir`. Depending on the operating system, you may have to choose a different location since `/app/data` might be not writable.
 
 ```
-$ git clone https://github.com/mxpv/podsync
+$ git clone https://github.com/yangtfu/podsync
 $ cd podsync
 $ make
 $ ./bin/podsync --config config.toml
@@ -138,13 +138,13 @@ Use the editor [Visual Studio Code](https://code.visualstudio.com/) and install 
 ### 🐳 Run via Docker:
 
 ```
-$ docker pull ghcr.io/mxpv/podsync:latest
+$ docker pull ghcr.io/yangtfu/podsync:latest
 $ docker run \
     -p 8080:8080 \
     -v $(pwd)/data:/app/data/ \
     -v $(pwd)/db:/app/db/ \
     -v $(pwd)/config.toml:/app/config.toml \
-    ghcr.io/mxpv/podsync:latest
+    ghcr.io/yangtfu/podsync:latest
 ```
 
 ### 🐳 Run via Docker Compose:
@@ -153,7 +153,7 @@ $ docker run \
 $ cat docker-compose.yml
 services:
   podsync:
-    image: ghcr.io/mxpv/podsync
+    image: ghcr.io/yangtfu/podsync
     container_name: podsync
     volumes:
       - ./data:/app/data/

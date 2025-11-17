@@ -38,7 +38,7 @@ Now you need to SSH into the QNAP using an app like Putty (on Windows - just goo
 5. Copy and paste the following command:
 
 ```bash
-docker pull mxpv/podsync:latest
+docker pull yangtfu/podsync:latest
 ```
 
 Docker will download the latest version of Podsync.
@@ -50,7 +50,7 @@ docker run \
     -p 6969:6969 \
     -v /share/CACHEDEV1_DATA/appdata/podsync:/app/data/ \
     -v /share/CACHEDEV1_DATA/appdata/podsync/config.toml:/app/config.toml \
-    mxpv/podsync:latest
+    yangtfu/podsync:latest
 ```
 
 This will install a container in Container Station and run it. Podsync will load and read your config.toml file and start downloading episodes.

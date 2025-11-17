@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mxpv/podsync/pkg/model"
+	"github.com/yangtfu/podsync/pkg/model"
 )
 
 func TestParseBililiURL(t *testing.T) {

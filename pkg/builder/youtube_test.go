@@ -9,7 +9,7 @@ import (
 	"google.golang.org/api/option"
 	"google.golang.org/api/youtube/v3"
 
-	"github.com/mxpv/podsync/pkg/model"
+	"github.com/yangtfu/podsync/pkg/model"
 )
 
 // MockTransport implements http.RoundTripper for testing

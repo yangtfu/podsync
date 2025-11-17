@@ -7,9 +7,9 @@ import (
 
 	"time"
 
-	"github.com/mxpv/podsync/pkg/feed"
+	"github.com/yangtfu/podsync/pkg/feed"
 
-	"github.com/mxpv/podsync/pkg/model"
+	"github.com/yangtfu/podsync/pkg/model"
 )
 
 type BilibiliBuilder struct {

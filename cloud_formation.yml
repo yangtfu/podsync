@@ -20,7 +20,7 @@ Parameters:
   PodsyncVersion:
     Type: String
     Default: latest
-    Description: Podsync version to use (see https://github.com/mxpv/podsync/releases)
+    Description: Podsync version to use (see https://github.com/yangtfu/podsync/releases)
 
   PodsyncPort:
     Type: Number
@@ -32,13 +32,13 @@ Parameters:
     Type: String
     AllowedPattern: '.+' # Required
     Description: |
-      Key to use for YouTube API access (see https://github.com/mxpv/podsync/blob/master/docs/how_to_get_youtube_api_key.md)
+      Key to use for YouTube API access (see https://github.com/yangtfu/podsync/blob/master/docs/how_to_get_youtube_api_key.md)
 
   VimeoAccessToken:
     Type: String
     AllowedPattern: '.+' # Required
     Description: |
-      Key to use for Vimeo API access (see https://github.com/mxpv/podsync/blob/master/docs/how_to_get_vimeo_token.md)
+      Key to use for Vimeo API access (see https://github.com/yangtfu/podsync/blob/master/docs/how_to_get_vimeo_token.md)
 
   FeedId:
     Type: String
@@ -186,13 +186,13 @@ Resources:
           EOF
 
           # Pull image and run CLI
-          docker pull mxpv/podsync:${PodsyncVersion}
+          docker pull yangtfu/podsync:${PodsyncVersion}
           docker run -d \
             -p ${PodsyncPort}:${PodsyncPort} \
             -v /home/ec2-user/podsync/data:/app/data \
             -v /home/ec2-user/podsync/config.toml:/app/config.toml \
             --restart always \
-            mxpv/podsync:${PodsyncVersion}
+            yangtfu/podsync:${PodsyncVersion}
 
           # Signal ok
           /opt/aws/bin/cfn-signal --exit-code 0 --resource Ec2Instance --region ${AWS::Region} --stack ${AWS::StackName}

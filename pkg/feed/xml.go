@@ -11,7 +11,7 @@ import (
 	itunes "github.com/eduncan911/podcast"
 	"github.com/pkg/errors"
 
-	"github.com/mxpv/podsync/pkg/model"
+	"github.com/yangtfu/podsync/pkg/model"
 )
 
 // sort.Interface implementation
@@ -32,7 +32,7 @@ func (p timeSlice) Swap(i, j int) {
 
 func Build(_ context.Context, feed *model.Feed, cfg *Config, hostname string) (*itunes.Podcast, error) {
 	const (
-		podsyncGenerator = "Podsync generator (support us at https://github.com/mxpv/podsync)"
+		podsyncGenerator = "Podsync generator (support us at https://github.com/yangtfu/podsync)"
 		defaultCategory  = "TV & Film"
 	)
 

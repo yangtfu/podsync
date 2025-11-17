@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/mxpv/podsync/pkg/feed"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/yangtfu/podsync/pkg/feed"
 )
 
 func TestBilibili_BuildFeed(t *testing.T) {

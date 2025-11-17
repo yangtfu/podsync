@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	itunes "github.com/eduncan911/podcast"
-	"github.com/mxpv/podsync/pkg/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/yangtfu/podsync/pkg/model"
 )
 
 func TestBuildXML(t *testing.T) {

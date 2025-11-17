@@ -53,6 +53,6 @@ release:
   footer: |
     # Docker images
     ```
-    docker pull ghcr.io/mxpv/podsync:{{ .Tag }}
-    docker pull ghcr.io/mxpv/podsync:latest
+    docker pull ghcr.io/yangtfu/podsync:{{ .Tag }}
+    docker pull ghcr.io/yangtfu/podsync:latest
     ```

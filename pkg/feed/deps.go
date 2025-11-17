@@ -5,7 +5,7 @@ package feed
 import (
 	"context"
 
-	"github.com/mxpv/podsync/pkg/model"
+	"github.com/yangtfu/podsync/pkg/model"
 )
 
 type feedProvider interface {

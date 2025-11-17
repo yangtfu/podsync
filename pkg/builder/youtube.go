@@ -10,14 +10,14 @@ import (
 	"time"
 
 	"github.com/BrianHicks/finch/duration"
-	"github.com/mxpv/podsync/pkg/feed"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"github.com/yangtfu/podsync/pkg/feed"
 	"google.golang.org/api/option"
 	"google.golang.org/api/youtube/v3"
 
-	"github.com/mxpv/podsync/pkg/model"
-	"github.com/mxpv/podsync/pkg/ytdl"
+	"github.com/yangtfu/podsync/pkg/model"
+	"github.com/yangtfu/podsync/pkg/ytdl"
 )
 
 type Downloader interface {
@@ -170,7 +170,7 @@ func (yt *YouTubeBuilder) selectThumbnail(snippet *youtube.ThumbnailDetails, qua
 	}
 
 	// Use high resolution thumbnails for high quality mode
-	// https://github.com/mxpv/Podsync/issues/14
+	// https://github.com/yangtfu/Podsync/issues/14
 	if quality == model.QualityHigh {
 		if snippet.Maxres != nil {
 			return snippet.Maxres.Url

@@ -3,7 +3,7 @@ package feed
 import (
 	"time"
 
-	"github.com/mxpv/podsync/pkg/model"
+	"github.com/yangtfu/podsync/pkg/model"
 )
 
 // Config is a configuration for a feed loaded from TOML

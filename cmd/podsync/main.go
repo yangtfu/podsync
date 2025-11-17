@@ -10,18 +10,18 @@ import (
 	"time"
 
 	"github.com/jessevdk/go-flags"
-	"github.com/mxpv/podsync/pkg/feed"
-	"github.com/mxpv/podsync/pkg/model"
-	"github.com/mxpv/podsync/services/update"
-	"github.com/mxpv/podsync/services/web"
 	"github.com/robfig/cron/v3"
 	log "github.com/sirupsen/logrus"
+	"github.com/yangtfu/podsync/pkg/feed"
+	"github.com/yangtfu/podsync/pkg/model"
+	"github.com/yangtfu/podsync/services/update"
+	"github.com/yangtfu/podsync/services/web"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/natefinch/lumberjack.v2"
 
-	"github.com/mxpv/podsync/pkg/db"
-	"github.com/mxpv/podsync/pkg/fs"
-	"github.com/mxpv/podsync/pkg/ytdl"
+	"github.com/yangtfu/podsync/pkg/db"
+	"github.com/yangtfu/podsync/pkg/fs"
+	"github.com/yangtfu/podsync/pkg/ytdl"
 )
 
 type Opts struct {

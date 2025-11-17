@@ -3,10 +3,10 @@ package builder
 import (
 	"context"
 
-	"github.com/mxpv/podsync/pkg/feed"
 	"github.com/pkg/errors"
+	"github.com/yangtfu/podsync/pkg/feed"
 
-	"github.com/mxpv/podsync/pkg/model"
+	"github.com/yangtfu/podsync/pkg/model"
 )
 
 type Builder interface {

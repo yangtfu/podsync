@@ -1,10 +1,10 @@
-# CLAUDE.md
+# Repository Guidelines
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Codex when working with code in this repository.
 
 ## Project Overview
 
-Podsync is a Go-based service that converts YouTube, Vimeo, and SoundCloud channels into podcast feeds. It downloads video/audio content and generates RSS feeds that can be consumed by podcast clients.
+Podsync is a Go-based service that converts YouTube, Vimeo, SoundCloud and Bilibili channels into podcast feeds. It downloads video/audio content and generates RSS feeds that can be consumed by podcast clients.
 
 ## Key Architecture Components
 
@@ -13,7 +13,7 @@ Podsync is a Go-based service that converts YouTube, Vimeo, and SoundCloud chann
 - **config.go**: TOML configuration loading and validation with defaults
 
 ### Core Packages (`pkg/`)
-- **builder/**: Media downloaders for different platforms (YouTube, Vimeo, SoundCloud)
+- **builder/**: Media downloaders for different platforms (YouTube, Vimeo, SoundCloud, Bilibili)
 - **feed/**: RSS/podcast feed generation and management, OPML export
 - **db/**: BadgerDB-based storage for metadata and state
 - **fs/**: Storage abstraction supporting local filesystem and S3-compatible storage
@@ -103,8 +103,6 @@ The application uses TOML configuration files. See `config.toml.example` for all
 - Use a short, descriptive commit title (50 characters or less)
 - Include a brief commit body that summarizes changes in 1-3 sentences when needed (wrap at 120 characters)
 - Do not include automated signatures or generation notices in commit messages or pull requests
-- Don't add "Generated with Claude Code" to commit messages or pull request descriptions
-- Don't add "Co-Authored-By: Claude noreply@anthropic.com" to commit messages or pull request descriptions
 - Keep commits focused and atomic - one logical change per commit
 - Ensure the build passes before pushing commits
 

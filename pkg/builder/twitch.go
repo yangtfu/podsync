@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mxpv/podsync/pkg/feed"
-	"github.com/mxpv/podsync/pkg/model"
 	"github.com/nicklaw5/helix"
 	"github.com/pkg/errors"
+	"github.com/yangtfu/podsync/pkg/feed"
+	"github.com/yangtfu/podsync/pkg/model"
 )
 
 type TwitchBuilder struct {

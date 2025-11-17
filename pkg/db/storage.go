@@ -3,7 +3,7 @@ package db
 import (
 	"context"
 
-	"github.com/mxpv/podsync/pkg/model"
+	"github.com/yangtfu/podsync/pkg/model"
 )
 
 type Version int

@@ -4,9 +4,9 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/mxpv/podsync/pkg/feed"
-	"github.com/mxpv/podsync/pkg/model"
 	log "github.com/sirupsen/logrus"
+	"github.com/yangtfu/podsync/pkg/feed"
+	"github.com/yangtfu/podsync/pkg/model"
 )
 
 func matchRegexpFilter(pattern, str string, negative bool, logger log.FieldLogger) bool {
