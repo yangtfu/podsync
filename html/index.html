@@ -284,6 +284,28 @@
             color: #D70015;
             border-radius: 12px;
         }
+        .platform-icon-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            background-color: #F2F2F7;
+            margin-right: 6px;
+        }
+
+        .platform-icon-link img {
+            width: 14px;
+            height: 14px;
+        }
+
+        .filter-bar {
+            background: white;
+            border-radius: 12px;
+            padding: 12px 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
     </style>
 </head>
 <body>
@@ -315,6 +337,20 @@
                     <i class="bi bi-list-ul me-2"></i>
                     Latest Episodes
                 </h2>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col">
+                <div class="filter-bar d-flex flex-wrap align-items-center gap-3">
+                    <div class="d-flex align-items-center text-muted fw-semibold">
+                        <i class="bi bi-funnel me-2 text-secondary"></i>
+                        Filter by channel
+                    </div>
+                    <select id="channel-filter" class="form-select form-select-sm" style="max-width: 280px;">
+                        <option value="all">All channels</option>
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -441,10 +477,13 @@
 
         /**
          * Fetches and parses RSS feed to extract episodes
-         * @param {string} feedUrl - The RSS feed URL
+         * @param {Object|string} feedInfo - Feed metadata object or RSS feed URL
          * @returns {Promise<Array>} Array of episode objects
          */
-        async function fetchEpisodesFromFeed(feedUrl) {
+        async function fetchEpisodesFromFeed(feedInfo) {
+            const feedMeta = typeof feedInfo === 'string' ? {} : feedInfo;
+            const feedUrl = typeof feedInfo === 'string' ? feedInfo : feedInfo.xmlUrl;
+
             try {
                 const response = await fetch(feedUrl);
                 
@@ -462,7 +501,7 @@
                     throw new Error('RSS parsing error: ' + parserError.textContent);
                 }
                 
-                return parseRSSEpisodes(rssDoc, feedUrl);
+                return parseRSSEpisodes(rssDoc, feedUrl, feedMeta);
                 
             } catch (error) {
                 console.error(`Error fetching feed ${feedUrl}:`, error);
@@ -474,9 +513,10 @@
          * Parses RSS XML to extract episode information
          * @param {Document} rssDoc - The parsed RSS XML document
          * @param {string} feedUrl - The original feed URL for reference
+         * @param {Object} feedMeta - Additional feed metadata gathered from OPML
          * @returns {Array} Array of episode objects
          */
-        function parseRSSEpisodes(rssDoc, feedUrl) {
+        function parseRSSEpisodes(rssDoc, feedUrl, feedMeta = {}) {
             const episodes = [];
             const channel = rssDoc.querySelector('channel');
             
@@ -489,6 +529,8 @@
             const feedTitle = channel.querySelector('title')?.textContent || 'Unknown Feed';
             const feedDescription = channel.querySelector('description')?.textContent || '';
             const feedLink = channel.querySelector('link')?.textContent || '';
+            const originalSiteUrl = getOriginalSiteUrl(feedLink, feedMeta.htmlUrl, feedUrl);
+            const sourceDomain = extractDomainFromUrl(originalSiteUrl);
             
             // Get all items (episodes)
             const items = channel.querySelectorAll('item');
@@ -511,7 +553,9 @@
                            channel.querySelector('image url')?.textContent || '',
                     enclosureUrl: item.querySelector('enclosure')?.getAttribute('url') || '',
                     enclosureType: item.querySelector('enclosure')?.getAttribute('type') || '',
-                    enclosureLength: item.querySelector('enclosure')?.getAttribute('length') || ''
+                    enclosureLength: item.querySelector('enclosure')?.getAttribute('length') || '',
+                    sourceSiteUrl: originalSiteUrl,
+                    sourceDomain: sourceDomain
                 };
                 
                 // Parse publication date
@@ -532,20 +576,49 @@
         }
 
         /**
+         * Determines best candidate for original site URL.
+         * Prefers RSS channel link, falls back to OPML htmlUrl, then feed URL.
+         */
+        function getOriginalSiteUrl(feedLink, htmlUrl, fallbackUrl) {
+            if (feedLink && feedLink.startsWith('http')) {
+                return feedLink;
+            }
+            if (htmlUrl && htmlUrl.startsWith('http')) {
+                return htmlUrl;
+            }
+            return fallbackUrl;
+        }
+
+        /**
+         * Safely extracts hostname from a URL for favicon lookups
+         */
+        function extractDomainFromUrl(url) {
+            if (!url) {
+                return '';
+            }
+            try {
+                const parsed = new URL(url);
+                return parsed.hostname;
+            } catch (error) {
+                return '';
+            }
+        }
+
+        /**
          * Fetches all episodes from OPML feeds and sorts them by publication date
          * @param {Object} opmlData - The parsed OPML data
          * @returns {Promise<Array>} Array of all episodes sorted by publication date (newest first)
          */
         async function getAllEpisodesSortedByDate(opmlData) {
             const allEpisodes = [];
-            const feedUrls = extractFeedUrls(opmlData.body);
+            const feedConfigs = extractFeedUrls(opmlData.body);
             
-            console.log(`Found ${feedUrls.length} feeds to process...`);
+            console.log(`Found ${feedConfigs.length} feeds to process...`);
             
             // Fetch episodes from all feeds concurrently
-            const episodePromises = feedUrls.map(async (feedData) => {
+            const episodePromises = feedConfigs.map(async (feedData) => {
                 console.log(`Fetching episodes from: ${feedData.title}`);
-                const episodes = await fetchEpisodesFromFeed(feedData.xmlUrl);
+                const episodes = await fetchEpisodesFromFeed(feedData);
                 return episodes;
             });
             
@@ -594,6 +667,8 @@
 
         // UI-specific functions
         let allEpisodes = [];
+        let selectedChannel = 'all';
+        let channelMetadata = new Map();
 
         /**
          * Loads episodes and displays them in the UI
@@ -602,7 +677,6 @@
             const loading = document.getElementById('loading');
             const errorMessage = document.getElementById('error-message');
             const episodesContainer = document.getElementById('episodes-container');
-            const episodeCount = document.getElementById('episode-count');
             
             // Show loading, hide others
             loading.classList.remove('d-none');
@@ -616,11 +690,8 @@
                 
                 allEpisodes = await getAllEpisodesSortedByDate(opmlData);
                 
-                // Update episode count
-                episodeCount.textContent = `${allEpisodes.length} episodes loaded`;
-                
-                // Display all episodes
-                displayEpisodesInUI(allEpisodes);
+                initializeChannelFilter(allEpisodes);
+                renderEpisodesForSelection();
                 
                 // Hide loading, show episodes
                 loading.classList.add('d-none');
@@ -634,6 +705,83 @@
                 document.getElementById('error-text').textContent = error.message;
                 errorMessage.classList.remove('d-none');
             }
+        }
+
+        /**
+         * Populates channel filter dropdown with available feeds
+         * @param {Array} episodes - Episodes loaded from all feeds
+         */
+        function initializeChannelFilter(episodes) {
+            const filterSelect = document.getElementById('channel-filter');
+            if (!filterSelect) {
+                return;
+            }
+
+            const uniqueFeeds = [];
+            const seenFeeds = new Set();
+
+            episodes.forEach((episode) => {
+                if (!episode.feedUrl || seenFeeds.has(episode.feedUrl)) {
+                    return;
+                }
+                seenFeeds.add(episode.feedUrl);
+                uniqueFeeds.push({
+                    feedUrl: episode.feedUrl,
+                    feedTitle: episode.feedTitle,
+                    sourceDomain: episode.sourceDomain
+                });
+            });
+
+            uniqueFeeds.sort((a, b) => a.feedTitle.localeCompare(b.feedTitle));
+
+            channelMetadata = new Map(uniqueFeeds.map(feed => [
+                feed.feedUrl,
+                { feedTitle: feed.feedTitle, sourceDomain: feed.sourceDomain }
+            ]));
+
+            const options = ['<option value="all">All channels</option>'];
+            uniqueFeeds.forEach(feed => {
+                options.push(`<option value="${feed.feedUrl}">${feed.feedTitle}</option>`);
+            });
+
+            filterSelect.innerHTML = options.join('');
+            filterSelect.value = selectedChannel;
+
+            filterSelect.addEventListener('change', (event) => {
+                selectedChannel = event.target.value;
+                renderEpisodesForSelection();
+            });
+        }
+
+        /**
+         * Filters episodes for the selected channel and renders them
+         */
+        function renderEpisodesForSelection() {
+            const episodesToDisplay = selectedChannel === 'all' ? 
+                allEpisodes : 
+                allEpisodes.filter(episode => episode.feedUrl === selectedChannel);
+
+            displayEpisodesInUI(episodesToDisplay);
+            updateEpisodeCountLabel(episodesToDisplay.length);
+        }
+
+        /**
+         * Updates the navbar episode count based on current filter
+         * @param {number} displayedCount - Number of episodes currently shown
+         */
+        function updateEpisodeCountLabel(displayedCount) {
+            const episodeCount = document.getElementById('episode-count');
+            if (!episodeCount) {
+                return;
+            }
+
+            if (selectedChannel === 'all') {
+                episodeCount.textContent = `${displayedCount} episodes loaded`;
+                return;
+            }
+
+            const channelTitle = channelMetadata.get(selectedChannel)?.feedTitle || 'Selected channel';
+            episodeCount.textContent = `${displayedCount} episodes from ${channelTitle}`;
         }
 
         /**
@@ -655,6 +803,11 @@
                 // Clean up HTML tags from description
                 const cleanDesc = shortDesc.replace(/<[^>]*>/g, '');
                 
+                const platformIcon = episode.sourceDomain && episode.sourceSiteUrl ?
+                    `<a href="${episode.sourceSiteUrl}" target="_blank" class="platform-icon-link" title="View on ${episode.sourceDomain}">
+                        <img src="https://www.google.com/s2/favicons?domain=${episode.sourceDomain}&sz=32" alt="${episode.sourceDomain} icon" loading="lazy">
+                    </a>` : '';
+
                 return `
                     <div class="card episode-card mb-3">
                         <div class="card-body">
@@ -682,6 +835,7 @@
                                             `<a href="${episode.feedLink}" target="_blank" class="badge feed-badge me-2">${episode.feedTitle}</a>` :
                                             `<span class="badge feed-badge me-2">${episode.feedTitle}</span>`
                                         }
+                                        ${platformIcon}
                                         <a href="${episode.feedUrl}" target="_blank" class="text-warning me-2" style="font-size: 0.9rem;" title="RSS Feed">
                                             <i class="bi bi-rss"></i>
                                         </a>
