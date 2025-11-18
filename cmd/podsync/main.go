@@ -139,9 +139,6 @@ func main() {
 	log.Debug("creating key providers")
 	keys := map[model.Provider]feed.KeyProvider{}
 	for name, list := range cfg.Tokens {
-		if name == "bilibili" {
-			break // Bilibili does not require API keys
-		}
 		provider, err := feed.NewKeyProvider(list)
 		if err != nil {
 			log.WithError(err).Fatalf("failed to create key provider for %q", name)
@@ -202,9 +199,6 @@ func main() {
 		var cronID cron.EntryID
 
 		for _, _feed := range cfg.Feeds {
-			// Track if this feed has an explicit cron schedule
-			hasExplicitCronSchedule := _feed.CronSchedule != ""
-
 			if _feed.CronSchedule == "" {
 				_feed.CronSchedule = fmt.Sprintf("@every %s", _feed.UpdatePeriod.String())
 			}
@@ -219,9 +213,8 @@ func main() {
 			m[cronFeed.ID] = cronID
 			log.Debugf("-> %s (update '%s')", cronFeed.ID, cronFeed.CronSchedule)
 
-			// Only perform initial update if no explicit cron schedule is configured
-			// This prevents unwanted updates when using fixed schedules in Docker deployments
-			if !hasExplicitCronSchedule {
+			// Optionally perform a global initial update when Podsync starts.
+			if cfg.Server.RunOnStart {
 				updates <- cronFeed
 			}
 		}

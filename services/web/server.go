@@ -22,6 +22,8 @@ type Config struct {
 	Hostname string `toml:"hostname"`
 	// Port is a server port to listen to
 	Port int `toml:"port"`
+	// RunOnStart triggers a global feed update when Podsync starts
+	RunOnStart bool `toml:"run_on_start"`
 	// Bind a specific IP addresses for server
 	// "*": bind all IP addresses which is default option
 	// localhost or 127.0.0.1  bind a single IPv4 address

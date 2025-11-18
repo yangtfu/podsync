@@ -45,7 +45,7 @@ func (m *MockfeedProvider) GetFeed(ctx context.Context, feedID string) (*model.F
 }
 
 // GetFeed indicates an expected call of GetFeed.
-func (mr *MockfeedProviderMockRecorder) GetFeed(ctx, feedID interface{}) *gomock.Call {
+func (mr *MockfeedProviderMockRecorder) GetFeed(ctx, feedID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFeed", reflect.TypeOf((*MockfeedProvider)(nil).GetFeed), ctx, feedID)
 }

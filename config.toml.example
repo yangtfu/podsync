@@ -21,6 +21,8 @@ path = "test"
 web_ui = true
 # Optional. If you want to use TLS you must set the TLS flag and path to the certificate file and private key file.
 tls = true
+# When true, every configured feed performs an immediate update when Podsync starts.
+run_on_start = false
 certificate_path = "/var/www/cert.pem"  
 key_file_path = "/var/www/priv.pem"
 

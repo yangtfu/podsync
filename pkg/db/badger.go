@@ -259,14 +259,14 @@ func (b *Badger) iterator(txn *badger.Txn, opts badger.IteratorOptions, callback
 	return nil
 }
 
-func (b *Badger) getKey(format string, a ...interface{}) []byte {
+func (b *Badger) getKey(format string, a ...any) []byte {
 	resourcePath := fmt.Sprintf(format, a...)
 	fullPath := fmt.Sprintf("podsync/v%d/%s", CurrentVersion, resourcePath)
 
 	return []byte(fullPath)
 }
 
-func (b *Badger) setObj(txn *badger.Txn, key []byte, obj interface{}, overwrite bool) error {
+func (b *Badger) setObj(txn *badger.Txn, key []byte, obj any, overwrite bool) error {
 	if !overwrite {
 		// Overwrites are not allowed, make sure there is no object with the given key
 		_, err := txn.Get(key)
@@ -288,7 +288,7 @@ func (b *Badger) setObj(txn *badger.Txn, key []byte, obj interface{}, overwrite 
 	return txn.Set(key, data)
 }
 
-func (b *Badger) getObj(txn *badger.Txn, key []byte, out interface{}) error {
+func (b *Badger) getObj(txn *badger.Txn, key []byte, out any) error {
 	item, err := txn.Get(key)
 	if err != nil {
 		if err == badger.ErrKeyNotFound {
@@ -301,11 +301,11 @@ func (b *Badger) getObj(txn *badger.Txn, key []byte, out interface{}) error {
 	return b.unmarshalObj(item, out)
 }
 
-func (b *Badger) marshalObj(obj interface{}) ([]byte, error) {
+func (b *Badger) marshalObj(obj any) ([]byte, error) {
 	return json.Marshal(obj)
 }
 
-func (b *Badger) unmarshalObj(item *badger.Item, out interface{}) error {
+func (b *Badger) unmarshalObj(item *badger.Item, out any) error {
 	return item.Value(func(val []byte) error {
 		return json.Unmarshal(val, out)
 	})

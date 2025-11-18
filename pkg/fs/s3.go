@@ -132,6 +132,6 @@ func (r *readerWithN) Read(p []byte) (n int, err error) {
 
 type s3logger struct{}
 
-func (s s3logger) Log(args ...interface{}) {
+func (s s3logger) Log(args ...any) {
 	log.Debug(args...)
 }
