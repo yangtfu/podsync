@@ -9,7 +9,7 @@
             "mode": "debug",
             "program": "${workspaceFolder}/cmd/podsync",
             "cwd": "${workspaceFolder}",
-            "args": ["--config", "config.toml"]
+            "args": ["--config", "config.toml","--debug"]
         }
     ]
 }
