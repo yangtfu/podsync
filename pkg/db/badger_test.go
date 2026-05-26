@@ -89,6 +89,31 @@ func TestBadger_WalkFeeds(t *testing.T) {
 	assert.Equal(t, called, 1)
 }
 
+func TestBadger_FeedEnabled(t *testing.T) {
+	dir := t.TempDir()
+
+	db, err := NewBadger(&Config{Dir: dir})
+	require.NoError(t, err)
+	defer db.Close()
+
+	_, err = db.GetFeedEnabled(testCtx, "1")
+	assert.ErrorIs(t, err, model.ErrNotFound)
+
+	err = db.SetFeedEnabled(testCtx, "1", false)
+	require.NoError(t, err)
+
+	enabled, err := db.GetFeedEnabled(testCtx, "1")
+	require.NoError(t, err)
+	assert.False(t, enabled)
+
+	err = db.SetFeedEnabled(testCtx, "1", true)
+	require.NoError(t, err)
+
+	enabled, err = db.GetFeedEnabled(testCtx, "1")
+	require.NoError(t, err)
+	assert.True(t, enabled)
+}
+
 func TestBadger_DeleteFeed(t *testing.T) {
 	dir := t.TempDir()
 
@@ -98,6 +123,8 @@ func TestBadger_DeleteFeed(t *testing.T) {
 
 	feed := getFeed()
 	err = db.AddFeed(testCtx, feed.ID, feed)
+	require.NoError(t, err)
+	err = db.SetFeedEnabled(testCtx, feed.ID, false)
 	require.NoError(t, err)
 
 	err = db.DeleteFeed(testCtx, feed.ID)
@@ -110,6 +137,9 @@ func TestBadger_DeleteFeed(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, 0, called)
+
+	_, err = db.GetFeedEnabled(testCtx, feed.ID)
+	assert.ErrorIs(t, err, model.ErrNotFound)
 }
 
 func TestBadger_UpdateEpisode(t *testing.T) {

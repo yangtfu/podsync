@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"math/rand"
 	"net/http"
 	"os"
@@ -202,6 +201,10 @@ func main() {
 	}
 
 	log.Debug("creating update manager")
+	if err := applyFeedEnabledOverrides(ctx, database, cfg.Feeds); err != nil {
+		log.WithError(err).Fatal("failed to load feed runtime state")
+	}
+
 	manager, err := update.NewUpdater(cfg.Feeds, keys, cfg.Server.Hostname, downloader, database, storage)
 	if err != nil {
 		log.WithError(err).Fatal("failed to create updater")
@@ -211,12 +214,17 @@ func main() {
 	if opts.Headless {
 		spacer := newUpdateSpacer()
 		for _, _feed := range sortedFeeds(cfg.Feeds) {
+			if !_feed.IsEnabled() {
+				log.WithField("feed_id", _feed.ID).Info("skipping disabled feed")
+				continue
+			}
+
 			if err := spacer.Wait(ctx, _feed); err != nil {
 				log.WithError(err).Errorf("failed to wait before updating feed: %s", _feed.URL)
 				continue
 			}
 			if err := manager.Update(ctx, _feed); err != nil {
-				log.WithError(err).Errorf("failed to update feed: %s", _feed.URL)
+				log.WithError(err).WithField("feed_id", _feed.ID).Errorf("failed to update feed: %s", _feed.URL)
 			}
 		}
 		return
@@ -236,7 +244,7 @@ func main() {
 
 	// Create Cron
 	c := cron.New(cron.WithChain(cron.SkipIfStillRunning(cron.DiscardLogger)))
-	m := make(map[string]cron.EntryID)
+	feedRuntime := newFeedRuntime(database, cfg.Feeds, c, updates, manager.RebuildOPML)
 
 	// Run updates listener
 	group.Go(func() error {
@@ -248,13 +256,23 @@ func main() {
 				if !ok {
 					return nil
 				}
+				if !feedRuntime.IsEnabled(_feed.ID) {
+					log.WithField("feed_id", _feed.ID).Info("skipping disabled feed")
+					continue
+				}
 				if err := spacer.Wait(ctx, _feed); err != nil {
 					return err
 				}
+				if !feedRuntime.IsEnabled(_feed.ID) {
+					log.WithField("feed_id", _feed.ID).Info("skipping disabled feed")
+					continue
+				}
 				if err := manager.Update(ctx, _feed); err != nil {
-					log.WithError(err).Errorf("failed to update feed: %s", _feed.URL)
+					log.WithError(err).WithField("feed_id", _feed.ID).Errorf("failed to update feed: %s", _feed.URL)
 				} else {
-					log.Infof("next update of %s: %s", _feed.ID, c.Entry(m[_feed.ID]).Next)
+					if next := feedRuntime.NextUpdate(_feed.ID); !next.IsZero() {
+						log.WithField("feed_id", _feed.ID).Infof("next update of %s: %s", _feed.ID, next)
+					}
 				}
 			case <-ctx.Done():
 				return ctx.Err()
@@ -264,27 +282,8 @@ func main() {
 
 	// Run cron scheduler
 	group.Go(func() error {
-		var cronID cron.EntryID
-
-		for _, _feed := range sortedFeeds(cfg.Feeds) {
-			if _feed.CronSchedule == "" {
-				_feed.CronSchedule = fmt.Sprintf("@every %s", _feed.UpdatePeriod.String())
-			}
-			cronFeed := _feed
-			if cronID, err = c.AddFunc(cronFeed.CronSchedule, func() {
-				log.Debugf("adding %q to update queue", cronFeed.ID)
-				updates <- cronFeed
-			}); err != nil {
-				log.WithError(err).Fatalf("can't create cron task for feed: %s", cronFeed.ID)
-			}
-
-			m[cronFeed.ID] = cronID
-			log.Debugf("-> %s (update '%s')", cronFeed.ID, cronFeed.CronSchedule)
-
-			// Optionally perform a global initial update when Podsync starts.
-			if cfg.Server.RunOnStart {
-				updates <- cronFeed
-			}
+		if err := feedRuntime.RegisterEnabledFeeds(cfg.Server.RunOnStart); err != nil {
+			log.WithError(err).Fatal("can't create cron task")
 		}
 
 		c.Start()
@@ -304,7 +303,11 @@ func main() {
 	}
 
 	// Run web server
-	srv := web.New(cfg.Server, storage, database)
+	srv := web.New(cfg.Server, storage, database, web.Options{
+		ConfigPath:     opts.ConfigPath,
+		Feeds:          cfg.Feeds,
+		SetFeedEnabled: feedRuntime.SetEnabled,
+	})
 
 	group.Go(func() error {
 		log.Infof("running listener at %s", srv.Addr)

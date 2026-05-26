@@ -27,6 +27,12 @@ type Storage interface {
 	// WalkFeeds iterates over feeds saved to database
 	WalkFeeds(ctx context.Context, cb func(feed *model.Feed) error) error
 
+	// GetFeedEnabled gets the persisted runtime enabled state for a feed.
+	GetFeedEnabled(ctx context.Context, feedID string) (bool, error)
+
+	// SetFeedEnabled stores the runtime enabled state for a feed.
+	SetFeedEnabled(ctx context.Context, feedID string, enabled bool) error
+
 	// DeleteFeed deletes feed and all related data from database
 	DeleteFeed(ctx context.Context, feedID string) error
 

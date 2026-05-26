@@ -32,3 +32,23 @@ func TestBuildOPML(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expected, out)
 }
+
+func TestBuildOPMLSkipsDisabledFeeds(t *testing.T) {
+	expected := `<?xml version="1.0" encoding="UTF-8"?>
+<opml version="1.0">
+	<head>
+		<title>Podsync feeds</title>
+	</head>
+	<body></body>
+</opml>`
+
+	disabled := false
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	dbMock := NewMockfeedProvider(ctrl)
+	feeds := map[string]*Config{"any": {ID: "1", Enable: &disabled, OPML: true}}
+	out, err := BuildOPML(context.Background(), feeds, dbMock, "https://url/")
+	assert.NoError(t, err)
+	assert.Equal(t, expected, out)
+}

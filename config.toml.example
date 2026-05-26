@@ -65,6 +65,10 @@ vimeo = [ # Multiple keys will be rotated.
 [feeds]
   # Each channel must have a unique identifier (in this example "ID1").
   [feeds.ID1]
+  # Optional. Initial update state for this feed. Runtime changes from the Web UI are saved in the database.
+  # Defaults to true for configs that omit this setting.
+  enable = true
+
   # URL address of a channel, group, user, or playlist.
   url = "https://www.youtube.com/channel/CHANNEL_NAME_TO_HOST"
 

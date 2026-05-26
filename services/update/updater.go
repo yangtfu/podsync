@@ -56,11 +56,12 @@ func NewUpdater(
 }
 
 func (u *Manager) Update(ctx context.Context, feedConfig *feed.Config) error {
-	log.WithFields(log.Fields{
+	logger := log.WithFields(log.Fields{
 		"feed_id": feedConfig.ID,
 		"format":  feedConfig.Format,
 		"quality": feedConfig.Quality,
-	}).Infof("-> updating %s", feedConfig.URL)
+	})
+	logger.Infof("-> updating %s", feedConfig.URL)
 
 	started := time.Now()
 
@@ -91,12 +92,14 @@ func (u *Manager) Update(ctx context.Context, feedConfig *feed.Config) error {
 	}
 
 	elapsed := time.Since(started)
-	log.Infof("successfully updated feed in %s", elapsed)
+	logger.Infof("successfully updated feed in %s", elapsed)
 	return nil
 }
 
 // updateFeed pulls API for new episodes and saves them to database
 func (u *Manager) updateFeed(ctx context.Context, feedConfig *feed.Config) error {
+	logger := log.WithField("feed_id", feedConfig.ID)
+
 	info, err := builder.ParseURL(feedConfig.URL)
 	if err != nil {
 		return errors.Wrapf(err, "failed to parse URL: %s", feedConfig.URL)
@@ -117,13 +120,13 @@ func (u *Manager) updateFeed(ctx context.Context, feedConfig *feed.Config) error
 	}
 
 	// Query API to get episodes
-	log.Debug("building feed")
+	logger.Debug("building feed")
 	result, err := provider.Build(ctx, feedConfig)
 	if err != nil {
 		return err
 	}
 
-	log.Debugf("received %d episode(s) for %q", len(result.Episodes), result.Title)
+	logger.Debugf("received %d episode(s) for %q", len(result.Episodes), result.Title)
 
 	episodeSet := make(map[string]struct{})
 	if err := u.db.WalkEpisodes(ctx, feedConfig.ID, func(episode *model.Episode) error {
@@ -145,14 +148,14 @@ func (u *Manager) updateFeed(ctx context.Context, feedConfig *feed.Config) error
 
 	// removing episodes that are no longer available in the feed and not downloaded or cleaned
 	for id := range episodeSet {
-		log.Infof("removing episode %q", id)
+		logger.Infof("removing episode %q", id)
 		err := u.db.DeleteEpisode(feedConfig.ID, id)
 		if err != nil {
 			return err
 		}
 	}
 
-	log.Debug("successfully saved updates to storage")
+	logger.Debug("successfully saved updates to storage")
 	return nil
 }
 
@@ -163,12 +166,12 @@ func (u *Manager) fetchEpisodes(ctx context.Context, feedConfig *feed.Config) ([
 		pageSize     = feedConfig.PageSize
 	)
 
-	log.WithField("page_size", pageSize).Info("fetching episodes for download")
+	log.WithFields(log.Fields{"feed_id": feedID, "page_size": pageSize}).Info("fetching episodes for download")
 
 	// Build the list of files to download
 	err := u.db.WalkEpisodes(ctx, feedID, func(episode *model.Episode) error {
 		var (
-			logger = log.WithFields(log.Fields{"episode_id": episode.ID})
+			logger = log.WithFields(log.Fields{"feed_id": feedID, "episode_id": episode.ID})
 		)
 		if episode.Status != model.EpisodeNew && episode.Status != model.EpisodeError {
 			// File already downloaded
@@ -186,7 +189,7 @@ func (u *Manager) fetchEpisodes(ctx context.Context, feedConfig *feed.Config) ([
 			return nil
 		}
 
-		log.Debugf("adding %s (%q) to queue", episode.ID, episode.Title)
+		logger.Debugf("adding %s (%q) to queue", episode.ID, episode.Title)
 		downloadList = append(downloadList, episode)
 		return nil
 	})
@@ -206,9 +209,9 @@ func (u *Manager) downloadEpisodes(ctx context.Context, feedConfig *feed.Config,
 	)
 
 	if downloadCount > 0 {
-		log.Infof("download count: %d", downloadCount)
+		log.WithField("feed_id", feedID).Infof("download count: %d", downloadCount)
 	} else {
-		log.Info("no episodes to download")
+		log.WithField("feed_id", feedID).Info("no episodes to download")
 		return nil
 	}
 
@@ -216,7 +219,7 @@ func (u *Manager) downloadEpisodes(ctx context.Context, feedConfig *feed.Config,
 
 	for idx, episode := range downloadList {
 		var (
-			logger      = log.WithFields(log.Fields{"index": idx, "episode_id": episode.ID})
+			logger      = log.WithFields(log.Fields{"feed_id": feedID, "index": idx, "episode_id": episode.ID})
 			episodeName = feed.EpisodeName(feedConfig, episode)
 		)
 
@@ -305,18 +308,20 @@ func (u *Manager) downloadEpisodes(ctx context.Context, feedConfig *feed.Config,
 		downloaded++
 	}
 
-	log.Infof("downloaded %d episode(s)", downloaded)
+	log.WithField("feed_id", feedID).Infof("downloaded %d episode(s)", downloaded)
 	return nil
 }
 
 func (u *Manager) buildXML(ctx context.Context, feedConfig *feed.Config) error {
+	logger := log.WithField("feed_id", feedConfig.ID)
+
 	f, err := u.db.GetFeed(ctx, feedConfig.ID)
 	if err != nil {
 		return err
 	}
 
 	// Build iTunes XML feed with data received from builder
-	log.Debug("building iTunes podcast feed")
+	logger.Debug("building iTunes podcast feed")
 	podcast, err := feed.Build(ctx, f, feedConfig, u.hostname)
 	if err != nil {
 		return err
@@ -352,6 +357,10 @@ func (u *Manager) buildOPML(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (u *Manager) RebuildOPML(ctx context.Context) error {
+	return u.buildOPML(ctx)
 }
 
 func (u *Manager) cleanup(ctx context.Context, feedConfig *feed.Config) error {

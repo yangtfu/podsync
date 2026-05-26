@@ -77,9 +77,12 @@ func New(ctx context.Context, cfg Config) (*YoutubeDl, error) {
 		log.Warnf("using custom youtube-dl binary, turning self updates off")
 		cfg.SelfUpdate = false
 	} else {
-		path, err = exec.LookPath("youtube-dl")
+		path, err = exec.LookPath("yt-dlp")
 		if err != nil {
-			return nil, errors.Wrap(err, "youtube-dl binary not found")
+			path, err = exec.LookPath("youtube-dl")
+			if err != nil {
+				return nil, errors.Wrap(err, "yt-dlp or youtube-dl binary not found")
+			}
 		}
 
 		log.Debugf("found youtube-dl binary at %q", path)

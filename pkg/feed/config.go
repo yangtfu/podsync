@@ -9,6 +9,8 @@ import (
 // Config is a configuration for a feed loaded from TOML
 type Config struct {
 	ID string `toml:"-"`
+	// Enable controls the initial update state. Runtime changes are persisted in the database.
+	Enable *bool `toml:"enable"`
 	// URL is a full URL of the field
 	URL string `toml:"url"`
 	// PageSize is the number of pages to query from YouTube API.
@@ -53,6 +55,10 @@ type Config struct {
 	PrivateFeed bool `toml:"private_feed"`
 	// Playlist sort
 	PlaylistSort model.Sorting `toml:"playlist_sort"`
+}
+
+func (c *Config) IsEnabled() bool {
+	return c.Enable == nil || *c.Enable
 }
 
 type CustomFormat struct {

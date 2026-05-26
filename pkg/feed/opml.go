@@ -18,6 +18,10 @@ func BuildOPML(ctx context.Context, feeds map[string]*Config, db feedProvider, h
 	doc.Body = opml.Body{}
 
 	for _, feed := range feeds {
+		if !feed.IsEnabled() {
+			continue
+		}
+
 		f, err := db.GetFeed(ctx, feed.ID)
 		if err == model.ErrNotFound {
 			// As we update OPML on per-feed basis, some feeds may not yet be populated in database.

@@ -18,6 +18,7 @@ const (
 	versionPath   = "podsync/version"
 	feedPrefix    = "feed/"
 	feedPath      = "feed/%s"
+	feedStatePath = "feed_state/%s/enabled"
 	episodePrefix = "episode/%s/"
 	episodePath   = "episode/%s/%s" // FeedID + EpisodeID
 )
@@ -158,12 +159,33 @@ func (b *Badger) WalkFeeds(_ context.Context, cb func(feed *model.Feed) error) e
 	})
 }
 
+func (b *Badger) GetFeedEnabled(_ context.Context, feedID string) (bool, error) {
+	var (
+		enabled = false
+		key     = b.getKey(feedStatePath, feedID)
+	)
+
+	err := b.db.View(func(txn *badger.Txn) error {
+		return b.getObj(txn, key, &enabled)
+	})
+	return enabled, err
+}
+
+func (b *Badger) SetFeedEnabled(_ context.Context, feedID string, enabled bool) error {
+	return b.db.Update(func(txn *badger.Txn) error {
+		return b.setObj(txn, b.getKey(feedStatePath, feedID), enabled, true)
+	})
+}
+
 func (b *Badger) DeleteFeed(_ context.Context, feedID string) error {
 	return b.db.Update(func(txn *badger.Txn) error {
 		// Feed
 		feedKey := b.getKey(feedPath, feedID)
 		if err := txn.Delete(feedKey); err != nil {
 			return errors.Wrapf(err, "failed to delete feed %q", feedID)
+		}
+		if err := txn.Delete(b.getKey(feedStatePath, feedID)); err != nil && err != badger.ErrKeyNotFound {
+			return errors.Wrapf(err, "failed to delete feed state %q", feedID)
 		}
 
 		// Episodes

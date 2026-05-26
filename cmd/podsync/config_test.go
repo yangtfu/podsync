@@ -155,6 +155,29 @@ data_dir = "/data"
 	assert.EqualValues(t, feed.Quality, "high")
 	assert.EqualValues(t, feed.Custom.CoverArtQuality, "high")
 	assert.EqualValues(t, feed.Format, "video")
+	assert.True(t, feed.IsEnabled())
+}
+
+func TestLoadDisabledFeed(t *testing.T) {
+	const file = `
+[server]
+data_dir = "/data"
+
+[feeds]
+  [feeds.A]
+  enable = false
+  url = "https://youtube.com/watch?v=ygIUF678y40"
+`
+	path := setup(t, file)
+	defer os.Remove(path)
+
+	config, err := LoadConfig(path)
+	assert.NoError(t, err)
+	require.NotNil(t, config)
+
+	feed, ok := config.Feeds["A"]
+	require.True(t, ok)
+	assert.False(t, feed.IsEnabled())
 }
 
 func TestValidateUpdateDelay(t *testing.T) {

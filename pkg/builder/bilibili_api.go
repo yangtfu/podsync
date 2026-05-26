@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -41,11 +42,43 @@ type APIClient struct {
 	client *http.Client
 }
 
+type bilibiliAPIError struct {
+	Endpoint   string
+	URL        string
+	StatusCode int
+	Code       int
+	Message    string
+}
+
+func (e bilibiliAPIError) Error() string {
+	parts := []string{"API错误"}
+	if e.Endpoint != "" {
+		parts = append(parts, fmt.Sprintf("endpoint=%s", e.Endpoint))
+	}
+	if e.StatusCode != 0 {
+		parts = append(parts, fmt.Sprintf("http_status=%d", e.StatusCode))
+	}
+	if e.Code != 0 {
+		parts = append(parts, fmt.Sprintf("code=%d", e.Code))
+	}
+	if e.Message != "" {
+		parts = append(parts, fmt.Sprintf("message=%q", e.Message))
+	}
+	if e.URL != "" {
+		parts = append(parts, fmt.Sprintf("url=%s", e.URL))
+	}
+	return strings.Join(parts, " ")
+}
+
 // NewAPIClient 创建新的API客户端
 func NewAPIClient() *APIClient {
 	return &APIClient{
 		client: &http.Client{
 			Timeout: 10 * time.Second,
+			Transport: &http.Transport{
+				DisableCompression: true,
+				ForceAttemptHTTP2:  true,
+			},
 		},
 	}
 }
@@ -60,26 +93,44 @@ func (c *APIClient) setRequestHeaders(req *http.Request) {
 }
 
 // DoRequest 发送API请求并解析响应
-func (c *APIClient) DoRequest(url string, result any) error {
+func (c *APIClient) DoRequest(endpoint, url string, result any) error {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return fmt.Errorf("创建请求失败: %w", err)
+		return fmt.Errorf("创建请求失败 endpoint=%s url=%s: %w", endpoint, url, err)
 	}
 	c.setRequestHeaders(req)
 
 	resp, err := c.client.Do(req)
 	if err != nil {
-		return fmt.Errorf("发送请求失败: %w", err)
+		return fmt.Errorf("发送请求失败 endpoint=%s url=%s: %w", endpoint, url, err)
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("读取响应失败: %w", err)
+		return fmt.Errorf("读取响应失败 endpoint=%s url=%s http_status=%d: %w", endpoint, url, resp.StatusCode, err)
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		message := strings.TrimSpace(string(body))
+		var apiResponse struct {
+			Code    int    `json:"code"`
+			Message string `json:"message"`
+		}
+		if err := json.Unmarshal(body, &apiResponse); err == nil && apiResponse.Message != "" {
+			message = apiResponse.Message
+		}
+		return bilibiliAPIError{
+			Endpoint:   endpoint,
+			URL:        url,
+			StatusCode: resp.StatusCode,
+			Code:       apiResponse.Code,
+			Message:    message,
+		}
 	}
 
 	if err := json.Unmarshal(body, result); err != nil {
-		return fmt.Errorf("解析响应失败: %w", err)
+		return fmt.Errorf("解析响应失败 endpoint=%s url=%s http_status=%d: %w", endpoint, url, resp.StatusCode, err)
 	}
 
 	return nil
@@ -114,12 +165,12 @@ func (c *APIClient) GetEpisodeInfo(bvid string) (*EpisodeResponse, error) {
 	apiURL := fmt.Sprintf(EpisodeInfoAPI, bvid)
 
 	var response EpisodeResponse
-	if err := c.DoRequest(apiURL, &response); err != nil {
+	if err := c.DoRequest("episode_info", apiURL, &response); err != nil {
 		return nil, err
 	}
 
 	if response.Code != 0 {
-		return nil, fmt.Errorf("API错误: %s", response.Message)
+		return nil, bilibiliAPIError{Endpoint: "episode_info", URL: apiURL, Code: response.Code, Message: response.Message}
 	}
 
 	return &response, nil
@@ -155,12 +206,12 @@ func (c *APIClient) GetUserInfo(mid string) (*UserResponse, error) {
 	apiURL := fmt.Sprintf(UserInfoAPI, mid)
 
 	var response UserResponse
-	if err := c.DoRequest(apiURL, &response); err != nil {
+	if err := c.DoRequest("user_info", apiURL, &response); err != nil {
 		return nil, err
 	}
 
 	if response.Code != 0 {
-		return nil, fmt.Errorf("API错误: %s", response.Message)
+		return nil, bilibiliAPIError{Endpoint: "user_info", URL: apiURL, Code: response.Code, Message: response.Message}
 	}
 
 	return &response, nil
@@ -205,12 +256,12 @@ func (c *APIClient) GetUserEpisodesByPage(mid string, pageNum, pageSize int) (*U
 	apiURL := fmt.Sprintf(UserEpisodesAPI, mid, pageNum, pageSize)
 
 	var response UserEpisodesResponse
-	if err := c.DoRequest(apiURL, &response); err != nil {
+	if err := c.DoRequest("user_episodes", apiURL, &response); err != nil {
 		return nil, err
 	}
 
 	if response.Code != 0 {
-		return nil, fmt.Errorf("API错误: %s", response.Message)
+		return nil, bilibiliAPIError{Endpoint: "user_episodes", URL: apiURL, Code: response.Code, Message: response.Message}
 	}
 
 	return &response, nil
@@ -250,12 +301,12 @@ func (c *APIClient) GetSeasonEpisodesByPage(mid, seasonID string, pageNum, pageS
 	apiURL := fmt.Sprintf(SeasonInfoAPI, seasonID, mid, pageNum, pageSize)
 
 	var response SeasonArchivesResponse
-	if err := c.DoRequest(apiURL, &response); err != nil {
+	if err := c.DoRequest("season_episodes", apiURL, &response); err != nil {
 		return nil, err
 	}
 
 	if response.Code != 0 {
-		return nil, fmt.Errorf("API错误: %s", response.Message)
+		return nil, bilibiliAPIError{Endpoint: "season_episodes", URL: apiURL, Code: response.Code, Message: response.Message}
 	}
 
 	return &response, nil
@@ -291,12 +342,12 @@ func (c *APIClient) GetSeriesInfo(seriesID string) (*SeriesInfoResponse, error) 
 	apiURL := fmt.Sprintf(SeriesInfoAPI, seriesID)
 
 	var response SeriesInfoResponse
-	if err := c.DoRequest(apiURL, &response); err != nil {
+	if err := c.DoRequest("series_info", apiURL, &response); err != nil {
 		return nil, err
 	}
 
 	if response.Code != 0 {
-		return nil, fmt.Errorf("API错误: %s", response.Message)
+		return nil, bilibiliAPIError{Endpoint: "series_info", URL: apiURL, Code: response.Code, Message: response.Message}
 	}
 
 	return &response, nil
@@ -325,12 +376,12 @@ func (c *APIClient) GetSeriesEpisodesByPage(mid, seriesID string, pageNum, pageS
 	apiURL := fmt.Sprintf(SeriesEpisodesAPI, mid, seriesID, pageSize, pageNum)
 
 	var response SeriesArchivesResponse
-	if err := c.DoRequest(apiURL, &response); err != nil {
+	if err := c.DoRequest("series_episodes", apiURL, &response); err != nil {
 		return nil, err
 	}
 
 	if response.Code != 0 {
-		return nil, fmt.Errorf("API错误: %s", response.Message)
+		return nil, bilibiliAPIError{Endpoint: "series_episodes", URL: apiURL, Code: response.Code, Message: response.Message}
 	}
 
 	return &response, nil

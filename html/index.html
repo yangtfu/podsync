@@ -306,6 +306,179 @@
             padding: 12px 16px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.08);
         }
+
+        .feed-status {
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .feed-status.enabled {
+            background: #E8F8EE;
+            color: #1F7A3A;
+        }
+
+        .feed-status.disabled {
+            background: #E5E5EA;
+            color: #6D6D70;
+        }
+
+        .feed-cover {
+            width: 72px;
+            height: 72px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: #E5E5EA;
+            flex: 0 0 72px;
+        }
+
+        .feed-cover-lg {
+            width: 112px;
+            height: 112px;
+            border-radius: 10px;
+            object-fit: cover;
+            background: #E5E5EA;
+            flex: 0 0 112px;
+        }
+
+        .feed-cover-placeholder {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #8E8E93;
+            font-size: 1.5rem;
+        }
+
+        .feeds-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 18px 14px;
+        }
+
+        .feed-card-compact {
+            cursor: pointer;
+            position: relative;
+            background: transparent;
+            border: 0;
+            box-shadow: none;
+        }
+
+        .feed-card-compact .card-body {
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            min-height: 0;
+            position: relative;
+        }
+
+        .feed-card-top {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            margin-bottom: 8px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #E5E5EA;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+        }
+
+        .feed-cover {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            object-fit: cover;
+            background: #E5E5EA;
+        }
+
+        .source-icon-link {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .source-icon-link img {
+            width: 22px;
+            height: 22px;
+        }
+
+        .feed-card-bottom {
+            display: flex;
+            align-items: flex-start;
+            min-height: 2.4em;
+            gap: 0;
+        }
+
+        .feed-card-title {
+            color: #1D1D1F;
+            font-size: 0.9rem;
+            font-weight: 600;
+            line-height: 1.2;
+            margin: 0;
+            width: 100%;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+        }
+
+        .feed-cover-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #F2F2F7, #E5E5EA);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #8E8E93;
+            font-size: 2rem;
+        }
+
+        .feed-card-disabled {
+            opacity: 0.58;
+            filter: grayscale(1);
+        }
+
+        .feed-card-disabled:hover {
+            opacity: 0.72;
+        }
+
+        .config-editor {
+            height: 300px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+            font-size: 0.9rem;
+            line-height: 1.45;
+            border-radius: 8px;
+            resize: vertical;
+        }
+
+        .log-panel {
+            background: #1D1D1F;
+            color: #F5F5F7;
+            border-radius: 8px;
+            padding: 14px;
+            max-height: 360px;
+            overflow: auto;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+            font-size: 0.82rem;
+        }
+
+        .log-entry {
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding: 7px 0;
+        }
+
+        .log-entry:last-child {
+            border-bottom: 0;
+        }
     </style>
 </head>
 <body>
@@ -320,6 +493,10 @@
                 <span class="navbar-text" id="episode-count">
                     Loading episodes...
                 </span>
+                <a href="#feeds" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-sliders me-1"></i>
+                    Feeds
+                </a>
                 <a href="podsync.opml" target="_blank" class="btn btn-outline-secondary btn-sm">
                     <i class="bi bi-file-code me-1"></i>
                     OPML
@@ -330,6 +507,7 @@
 
     <!-- Main Content -->
     <div class="container mt-4">
+        <div id="episodes-view">
         <!-- Header -->
         <div class="row mb-4">
             <div class="col">
@@ -369,6 +547,82 @@
         <!-- Episodes List -->
         <div id="episodes-container" class="d-none">
             <!-- Episodes will be dynamically inserted here -->
+        </div>
+        </div>
+
+        <div id="feeds-view" class="d-none">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <h2 class="mb-0">
+                    <i class="bi bi-rss me-2"></i>
+                    Feeds
+                </h2>
+                <a href="#" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Episodes
+                </a>
+            </div>
+            <div id="feeds-list"></div>
+        </div>
+
+        <div id="feed-view" class="d-none">
+            <div class="mb-4">
+                <div class="d-flex gap-3 mb-3">
+                    <div id="feed-cover-large" class="feed-cover-lg feed-cover-placeholder" style="flex-shrink: 0;">
+                        <i class="bi bi-image"></i>
+                    </div>
+                    <div class="flex-grow-1 min-width-0">
+                        <a href="#feeds" class="btn btn-outline-secondary btn-sm mb-2">
+                            <i class="bi bi-arrow-left me-1"></i>
+                            All feeds
+                        </a>
+                        <h2 class="mb-1" id="feed-title" style="word-break: break-word;">Feed</h2>
+                        <div class="text-muted" id="feed-subtitle" style="max-height: 2.4em; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; word-break: break-word;"></div>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <a id="feed-rss-link" href="#" target="_blank" class="btn btn-outline-secondary btn-sm d-none">
+                        <i class="bi bi-rss me-1"></i>
+                        RSS
+                    </a>
+                    <span id="feed-status" class="feed-status enabled">Enabled</span>
+                    <button id="enable-feed" class="btn btn-outline-success btn-sm d-none">
+                        <i class="bi bi-play-circle me-1"></i>
+                        Enable
+                    </button>
+                    <button id="disable-feed" class="btn btn-outline-warning btn-sm">
+                        <i class="bi bi-pause-circle me-1"></i>
+                        Disable
+                    </button>
+                </div>
+            </div>
+
+            <div id="feed-alert" class="alert d-none" role="alert"></div>
+
+            <div class="row g-4">
+                <div class="col-12">
+                    <div class="card episode-card">
+                        <div class="card-body">
+                            <h5 class="mb-3">Feed config</h5>
+                            <textarea id="feed-config-viewer" class="form-control config-editor" spellcheck="false" readonly></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="card episode-card">
+                        <div class="card-body">
+                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                                <h5 class="mb-0">Feed logs</h5>
+                                <button id="refresh-feed-logs" class="btn btn-outline-secondary btn-sm">
+                                    <i class="bi bi-arrow-clockwise me-1"></i>
+                                    Refresh
+                                </button>
+                            </div>
+                            <div id="feed-logs" class="log-panel"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -555,7 +809,8 @@
                     enclosureType: item.querySelector('enclosure')?.getAttribute('type') || '',
                     enclosureLength: item.querySelector('enclosure')?.getAttribute('length') || '',
                     sourceSiteUrl: originalSiteUrl,
-                    sourceDomain: sourceDomain
+                    sourceDomain: sourceDomain,
+                    feedID: feedMeta.feedID || deriveFeedIDFromXMLUrl(feedUrl)
                 };
                 
                 // Parse publication date
@@ -601,6 +856,20 @@
                 return parsed.hostname;
             } catch (error) {
                 return '';
+            }
+        }
+
+        function deriveFeedIDFromXMLUrl(url) {
+            if (!url) {
+                return '';
+            }
+            try {
+                const parsed = new URL(url, window.location.href);
+                const fileName = parsed.pathname.split('/').filter(Boolean).pop() || '';
+                return fileName.endsWith('.xml') ? fileName.slice(0, -4) : fileName;
+            } catch (error) {
+                const fileName = url.split('/').filter(Boolean).pop() || '';
+                return fileName.endsWith('.xml') ? fileName.slice(0, -4) : fileName;
             }
         }
 
@@ -651,6 +920,7 @@
                     feeds.push({
                         title: outline.title || outline.text || 'Unknown Feed',
                         xmlUrl: outline.xmlUrl,
+                        feedID: deriveFeedIDFromXMLUrl(outline.xmlUrl),
                         htmlUrl: outline.htmlUrl || '',
                         description: outline.description || ''
                     });
@@ -669,6 +939,8 @@
         let allEpisodes = [];
         let selectedChannel = 'all';
         let channelMetadata = new Map();
+        let feedSummaries = new Map();
+        let activeFeedID = '';
 
         /**
          * Loads episodes and displays them in the UI
@@ -728,7 +1000,8 @@
                 uniqueFeeds.push({
                     feedUrl: episode.feedUrl,
                     feedTitle: episode.feedTitle,
-                    sourceDomain: episode.sourceDomain
+                    sourceDomain: episode.sourceDomain,
+                    feedID: episode.feedID
                 });
             });
 
@@ -736,7 +1009,7 @@
 
             channelMetadata = new Map(uniqueFeeds.map(feed => [
                 feed.feedUrl,
-                { feedTitle: feed.feedTitle, sourceDomain: feed.sourceDomain }
+                { feedTitle: feed.feedTitle, sourceDomain: feed.sourceDomain, feedID: feed.feedID }
             ]));
 
             const options = ['<option value="all">All channels</option>'];
@@ -784,6 +1057,283 @@
             episodeCount.textContent = `${displayedCount} episodes from ${channelTitle}`;
         }
 
+        function escapeHTML(value) {
+            return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[char]));
+        }
+
+        function setActiveView(name) {
+            document.getElementById('episodes-view').classList.toggle('d-none', name !== 'episodes');
+            document.getElementById('feeds-view').classList.toggle('d-none', name !== 'feeds');
+            document.getElementById('feed-view').classList.toggle('d-none', name !== 'feed');
+        }
+
+        function displayFeedTitle(feed) {
+            return feed?.title || feed?.url || 'Untitled feed';
+        }
+
+        function feedCoverHTML(feed, sizeClass) {
+            const placeholder = `<div class="${sizeClass} feed-cover-placeholder">
+                <i class="bi bi-image"></i>
+            </div>`;
+            if (!feed?.cover_art) {
+                return placeholder;
+            }
+            return `<img src="${escapeHTML(feed.cover_art)}" alt="${escapeHTML(displayFeedTitle(feed))}" class="${sizeClass}" referrerpolicy="no-referrer" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('d-none');">
+                <div class="${sizeClass} feed-cover-placeholder d-none">
+                    <i class="bi bi-image"></i>
+                </div>`;
+        }
+
+        function sourceIconHTML(feed) {
+            const domain = extractDomainFromUrl(feed?.url || '');
+            if (!domain) {
+                return '';
+            }
+            return `<a href="${escapeHTML(feed.url)}" target="_blank" class="source-icon-link" title="${escapeHTML(domain)}" onclick="event.stopPropagation();">
+                <img src="https://www.google.com/s2/favicons?domain=${escapeHTML(domain)}&sz=32" alt="${escapeHTML(domain)} icon" loading="lazy">
+            </a>`;
+        }
+
+        function setLargeFeedCover(feed) {
+            document.getElementById('feed-cover-large').outerHTML = `<div id="feed-cover-large">
+                ${feedCoverHTML(feed, 'feed-cover-lg')}
+            </div>`;
+        }
+
+        async function loadFeedSummaries() {
+            if (feedSummaries.size > 0) {
+                return feedSummaries;
+            }
+
+            const response = await fetch('/api/feeds');
+            if (!response.ok) {
+                throw new Error(`Failed to load feeds. HTTP status: ${response.status}`);
+            }
+
+            const payload = await response.json();
+            feedSummaries = new Map((payload.feeds || []).map(feed => [feed.id, feed]));
+            return feedSummaries;
+        }
+
+        async function renderFeedsView() {
+            setActiveView('feeds');
+            document.getElementById('episode-count').textContent = 'Feed settings';
+            const list = document.getElementById('feeds-list');
+            list.innerHTML = '<div class="loading-spinner"></div>';
+
+            try {
+                await loadFeedSummaries();
+                const feeds = Array.from(feedSummaries.values());
+                if (feeds.length === 0) {
+                    list.innerHTML = '<div class="alert alert-secondary">No feeds configured.</div>';
+                    return;
+                }
+
+                list.innerHTML = `<div class="feeds-grid">
+                    ${feeds.map(feed => `
+                        <div class="card episode-card feed-card-compact ${feed.enabled ? '' : 'feed-card-disabled'}" role="button" tabindex="0" onclick="window.location.hash='feed/${encodeURIComponent(feed.id)}'" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); window.location.hash='feed/${encodeURIComponent(feed.id)}'; }">
+                            <div class="card-body">
+                                <div class="feed-card-top">
+                                    ${feedCoverHTML(feed, 'feed-cover')}
+                                    ${sourceIconHTML(feed)}
+                                </div>
+                                <div class="feed-card-bottom">
+                                    <h5 class="feed-card-title">${escapeHTML(displayFeedTitle(feed))}</h5>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>`;
+            } catch (error) {
+                list.innerHTML = `<div class="alert alert-danger">${escapeHTML(error.message)}</div>`;
+            }
+        }
+
+        async function renderFeedView(feedID) {
+            activeFeedID = feedID;
+            setActiveView('feed');
+            clearFeedAlert();
+            document.getElementById('feed-title').textContent = 'Loading feed...';
+            document.getElementById('feed-subtitle').textContent = 'Loading feed details...';
+            setLargeFeedCover({});
+            document.getElementById('feed-rss-link').classList.add('d-none');
+            document.getElementById('enable-feed').disabled = true;
+            document.getElementById('disable-feed').disabled = true;
+            document.getElementById('feed-config-viewer').value = '';
+            document.getElementById('feed-logs').innerHTML = '<div class="text-muted">Loading logs...</div>';
+            document.getElementById('episode-count').textContent = 'Feed settings';
+
+            try {
+                const [summaries, configPayload, logsPayload] = await Promise.all([
+                    loadFeedSummaries(),
+                    fetchFeedConfig(feedID),
+                    fetchFeedLogs(feedID)
+                ]);
+                const summary = summaries.get(feedID);
+                if (!summary) {
+                    throw new Error('Feed was not found.');
+                }
+
+                renderFeedSummary(summary);
+                document.getElementById('feed-config-viewer').value = configPayload.config || '';
+                renderFeedLogs(logsPayload.logs || []);
+            } catch (error) {
+                showFeedAlert('danger', error.message);
+                document.getElementById('feed-subtitle').textContent = 'Failed to load feed details';
+                document.getElementById('feed-logs').innerHTML = '';
+            }
+        }
+
+        function renderFeedSummary(summary) {
+            document.getElementById('feed-title').textContent = displayFeedTitle(summary);
+            document.getElementById('feed-subtitle').textContent = summary.description || summary.url;
+            setLargeFeedCover(summary);
+            document.getElementById('episode-count').textContent = displayFeedTitle(summary);
+
+            const rssLink = document.getElementById('feed-rss-link');
+            rssLink.href = summary.xml_url || '#';
+            rssLink.classList.toggle('d-none', !summary.xml_url);
+
+            const status = document.getElementById('feed-status');
+            status.textContent = summary.enabled ? 'Enabled' : 'Disabled';
+            status.className = `feed-status ${summary.enabled ? 'enabled' : 'disabled'}`;
+
+            const enableButton = document.getElementById('enable-feed');
+            enableButton.disabled = summary.enabled;
+            enableButton.classList.toggle('d-none', summary.enabled);
+
+            const disableButton = document.getElementById('disable-feed');
+            disableButton.disabled = !summary.enabled;
+            disableButton.classList.toggle('d-none', !summary.enabled);
+        }
+
+        async function enableActiveFeed() {
+            await setActiveFeedEnabled(true);
+        }
+
+        async function disableActiveFeed() {
+            await setActiveFeedEnabled(false);
+        }
+
+        async function setActiveFeedEnabled(enabled) {
+            if (!activeFeedID) {
+                return;
+            }
+
+            const button = document.getElementById(enabled ? 'enable-feed' : 'disable-feed');
+            button.disabled = true;
+            clearFeedAlert();
+
+            try {
+                const action = enabled ? 'enable' : 'disable';
+                const response = await fetch(`/api/feeds/${encodeURIComponent(activeFeedID)}/${action}`, {
+                    method: 'POST'
+                });
+                const payload = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(payload.error || `Failed to ${action} feed. HTTP status: ${response.status}`);
+                }
+
+                const summary = feedSummaries.get(activeFeedID);
+                if (summary) {
+                    summary.enabled = enabled;
+                    renderFeedSummary(summary);
+                }
+                showFeedAlert('success', `Feed ${enabled ? 'enabled' : 'disabled'}. The change is active now.`);
+            } catch (error) {
+                button.disabled = false;
+                showFeedAlert('danger', error.message);
+            }
+        }
+
+        async function fetchFeedConfig(feedID) {
+            const response = await fetch(`/api/feeds/${encodeURIComponent(feedID)}/config`);
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw new Error(payload.error || `Failed to load config. HTTP status: ${response.status}`);
+            }
+            return payload;
+        }
+
+        async function fetchFeedLogs(feedID) {
+            const response = await fetch(`/api/feeds/${encodeURIComponent(feedID)}/logs?limit=200`);
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw new Error(payload.error || `Failed to load logs. HTTP status: ${response.status}`);
+            }
+            return payload;
+        }
+
+        function renderFeedLogs(logs) {
+            const panel = document.getElementById('feed-logs');
+            if (!logs.length) {
+                panel.innerHTML = '<div class="text-muted">No feed-specific logs in this process yet.</div>';
+                return;
+            }
+
+            panel.innerHTML = logs.map(entry => {
+                const fields = entry.fields ? Object.entries(entry.fields)
+                    .map(([key, value]) => `${escapeHTML(key)}=${escapeHTML(value)}`)
+                    .join(' ') : '';
+                const timestamp = entry.timestamp ? new Date(entry.timestamp).toLocaleString() : '';
+                return `
+                    <div class="log-entry">
+                        <div>
+                            <span class="text-secondary">${escapeHTML(timestamp)}</span>
+                            <span class="text-info">${escapeHTML(entry.level || '')}</span>
+                            ${fields ? `<span class="text-warning">${fields}</span>` : ''}
+                        </div>
+                        <div>${escapeHTML(entry.message || '')}</div>
+                    </div>
+                `;
+            }).join('');
+            panel.scrollTop = panel.scrollHeight;
+        }
+
+        async function refreshActiveFeedLogs() {
+            if (!activeFeedID) {
+                return;
+            }
+            try {
+                const payload = await fetchFeedLogs(activeFeedID);
+                renderFeedLogs(payload.logs || []);
+            } catch (error) {
+                showFeedAlert('danger', error.message);
+            }
+        }
+
+        function showFeedAlert(level, message) {
+            const alert = document.getElementById('feed-alert');
+            alert.className = `alert alert-${level}`;
+            alert.textContent = message;
+        }
+
+        function clearFeedAlert() {
+            const alert = document.getElementById('feed-alert');
+            alert.className = 'alert d-none';
+            alert.textContent = '';
+        }
+
+        function route() {
+            const hash = window.location.hash || '#';
+            if (hash === '#feeds') {
+                renderFeedsView();
+                return;
+            }
+            if (hash.startsWith('#feed/')) {
+                renderFeedView(decodeURIComponent(hash.slice('#feed/'.length)));
+                return;
+            }
+            setActiveView('episodes');
+            renderEpisodesForSelection();
+        }
+
         /**
          * Displays episodes in the UI
          * @param {Array} episodes - Episodes to display
@@ -808,6 +1358,10 @@
                         <img src="https://www.google.com/s2/favicons?domain=${episode.sourceDomain}&sz=32" alt="${episode.sourceDomain} icon" loading="lazy">
                     </a>` : '';
 
+                const feedBadge = episode.feedID ?
+                    `<a href="#feed/${encodeURIComponent(episode.feedID)}" class="badge feed-badge me-2">${episode.feedTitle}</a>` :
+                    `<span class="badge feed-badge me-2">${episode.feedTitle}</span>`;
+
                 return `
                     <div class="card episode-card mb-3">
                         <div class="card-body">
@@ -831,10 +1385,7 @@
                                 </div>
                                 <div class="col">
                                     <div class="d-flex flex-wrap align-items-center mb-2">
-                                        ${episode.feedLink ? 
-                                            `<a href="${episode.feedLink}" target="_blank" class="badge feed-badge me-2">${episode.feedTitle}</a>` :
-                                            `<span class="badge feed-badge me-2">${episode.feedTitle}</span>`
-                                        }
+                                        ${feedBadge}
                                         ${platformIcon}
                                         <a href="${episode.feedUrl}" target="_blank" class="text-warning me-2" style="font-size: 0.9rem;" title="RSS Feed">
                                             <i class="bi bi-rss"></i>
@@ -923,7 +1474,13 @@
 
         // Load episodes when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            loadEpisodes();
+            document.getElementById('enable-feed').addEventListener('click', enableActiveFeed);
+            document.getElementById('disable-feed').addEventListener('click', disableActiveFeed);
+            document.getElementById('refresh-feed-logs').addEventListener('click', refreshActiveFeedLogs);
+            window.addEventListener('hashchange', route);
+
+            route();
+            loadEpisodes().then(route);
         });
     </script>
 </body>
