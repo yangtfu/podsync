@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"os"
 	"os/signal"
+	"sort"
 	"syscall"
 	"time"
 
@@ -48,6 +50,59 @@ var (
 	date    = "unknown"
 	arch    = ""
 )
+
+type updateSpacer struct {
+	rng  *rand.Rand
+	seen bool
+}
+
+func newUpdateSpacer() *updateSpacer {
+	return &updateSpacer{
+		rng: rand.New(rand.NewSource(time.Now().UnixNano())),
+	}
+}
+
+func sortedFeeds(feeds map[string]*feed.Config) []*feed.Config {
+	ids := make([]string, 0, len(feeds))
+	for id := range feeds {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+
+	list := make([]*feed.Config, 0, len(feeds))
+	for _, id := range ids {
+		list = append(list, feeds[id])
+	}
+
+	return list
+}
+
+func (s *updateSpacer) Wait(ctx context.Context, feedConfig *feed.Config) error {
+	if !s.seen {
+		s.seen = true
+		return nil
+	}
+
+	if feedConfig.UpdateDelay <= 0 {
+		return nil
+	}
+	delay := time.Duration(s.rng.Int63n(int64(feedConfig.UpdateDelay)))
+
+	log.WithFields(log.Fields{
+		"feed_id": feedConfig.ID,
+		"delay":   delay,
+	}).Info("waiting before next feed update")
+
+	timer := time.NewTimer(delay)
+	defer timer.Stop()
+
+	select {
+	case <-timer.C:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
 
 func main() {
 	log.SetFormatter(&log.TextFormatter{
@@ -154,7 +209,12 @@ func main() {
 
 	// In Headless mode, do one round of feed updates and quit
 	if opts.Headless {
-		for _, _feed := range cfg.Feeds {
+		spacer := newUpdateSpacer()
+		for _, _feed := range sortedFeeds(cfg.Feeds) {
+			if err := spacer.Wait(ctx, _feed); err != nil {
+				log.WithError(err).Errorf("failed to wait before updating feed: %s", _feed.URL)
+				continue
+			}
 			if err := manager.Update(ctx, _feed); err != nil {
 				log.WithError(err).Errorf("failed to update feed: %s", _feed.URL)
 			}
@@ -180,9 +240,17 @@ func main() {
 
 	// Run updates listener
 	group.Go(func() error {
+		spacer := newUpdateSpacer()
+
 		for {
 			select {
-			case _feed := <-updates:
+			case _feed, ok := <-updates:
+				if !ok {
+					return nil
+				}
+				if err := spacer.Wait(ctx, _feed); err != nil {
+					return err
+				}
 				if err := manager.Update(ctx, _feed); err != nil {
 					log.WithError(err).Errorf("failed to update feed: %s", _feed.URL)
 				} else {
@@ -198,7 +266,7 @@ func main() {
 	group.Go(func() error {
 		var cronID cron.EntryID
 
-		for _, _feed := range cfg.Feeds {
+		for _, _feed := range sortedFeeds(cfg.Feeds) {
 			if _feed.CronSchedule == "" {
 				_feed.CronSchedule = fmt.Sprintf("@every %s", _feed.UpdatePeriod.String())
 			}

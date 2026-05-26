@@ -102,23 +102,18 @@ func (b *BilibiliBuilder) Build(_ context.Context, cfg *feed.Config) (*model.Fee
 	}
 	var added = 0
 	for _, videoInfo := range archives {
-		episodeResponse, err := b.client.GetEpisodeInfo(videoInfo.Bvid)
-		if err != nil {
-			return nil, err
-		}
-		if episodeResponse.Data.Is_upower_exclusive {
-			// skip uPower exclusive videos
+		if videoInfo.State != 0 || videoInfo.UgcPay != 0 {
 			continue
 		}
 		_feed.Episodes = append(_feed.Episodes, &model.Episode{
-			ID:          episodeResponse.Data.Bvid,
-			Title:       episodeResponse.Data.Title,
-			Description: episodeResponse.Data.Desc,
-			Duration:    int64(episodeResponse.Data.Duration),
-			Size:        int64(episodeResponse.Data.Duration * 15000), // very rough estimate
-			VideoURL:    "https://www.bilibili.com/video/" + episodeResponse.Data.Bvid,
+			ID:          videoInfo.Bvid,
+			Title:       videoInfo.Title,
+			Description: videoInfo.Desc,
+			Duration:    int64(videoInfo.Duration),
+			Size:        int64(videoInfo.Duration * 15000), // very rough estimate
+			VideoURL:    "https://www.bilibili.com/video/" + videoInfo.Bvid,
 			PubDate:     time.Unix(videoInfo.PubDate, 0),
-			Thumbnail:   episodeResponse.Data.Pic,
+			Thumbnail:   videoInfo.Pic,
 			Status:      model.EpisodeNew,
 		})
 

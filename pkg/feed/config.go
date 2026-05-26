@@ -19,6 +19,8 @@ type Config struct {
 	// Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
 	// NOTE: too often update check might drain your API token.
 	UpdatePeriod time.Duration `toml:"update_period"`
+	// UpdateDelay is the maximum random delay before this feed runs after the previous queued feed update.
+	UpdateDelay time.Duration `toml:"update_delay"`
 	// Cron expression format is how often to check update
 	// NOTE: too often update check might drain your API token.
 	CronSchedule string `toml:"cron_schedule"`

@@ -170,14 +170,16 @@ type Archive struct {
 	Aid      int64  `json:"aid"`
 	Bvid     string `json:"bvid"`
 	CTime    int64  `json:"ctime"`
+	Desc     string `json:"desc"`
 	Duration int    `json:"duration"`
 	Pic      string `json:"pic"`
 	PubDate  int64  `json:"pubdate"`
 	Stat     struct {
 		View int `json:"view"`
 	} `json:"stat"`
-	State int    `json:"state"`
-	Title string `json:"title"`
+	State  int    `json:"state"`
+	Title  string `json:"title"`
+	UgcPay int    `json:"ugc_pay"`
 }
 
 // 用户剧集列表API响应结构体

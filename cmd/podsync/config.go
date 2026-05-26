@@ -125,6 +125,9 @@ func (c *Config) validate() error {
 		if f.URL == "" {
 			result = multierror.Append(result, errors.Errorf("URL is required for %q", id))
 		}
+		if f.UpdateDelay < 0 {
+			result = multierror.Append(result, errors.Errorf("update_delay must be non-negative for %q", id))
+		}
 	}
 
 	return result.ErrorOrNil()
@@ -162,6 +165,10 @@ func (c *Config) applyDefaults(configPath string) {
 	for _, _feed := range c.Feeds {
 		if _feed.UpdatePeriod == 0 {
 			_feed.UpdatePeriod = model.DefaultUpdatePeriod
+		}
+
+		if _feed.UpdateDelay == 0 {
+			_feed.UpdateDelay = model.DefaultUpdateDelay
 		}
 
 		if _feed.Quality == "" {

@@ -92,6 +92,17 @@ youtube = "PASTE YOUR API KEY HERE" # See config.toml.example for environment va
   url = "https://www.youtube.com/channel/UCxC5Ls6DwqV0e-CYcAKkExQ"
 ```
 
+When multiple feeds are queued, Podsync waits a random `0-2m` between adjacent feed updates by default. You can tune
+the maximum random delay per feed:
+
+```toml
+[feeds]
+  [feeds.bilibili]
+  url = "https://space.bilibili.com/35195926"
+  update_period = "12h"
+  update_delay = "3m"
+```
+
 Behind a reverse proxy (nginx, Caddy, etc.) set the `hostname` so generated episode URLs point to your external host:
 
 ```toml

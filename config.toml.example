@@ -74,6 +74,10 @@ vimeo = [ # Multiple keys will be rotated.
   # How often query for updates, examples: "60m", "4h", "2h45m"
   update_period = "12h"
 
+  # Maximum random delay before this feed runs after the previous queued feed update.
+  # For example, "2m" waits a random duration from 0 to 2 minutes each time.
+  update_delay = "2m"
+
   quality = "high" # "high" or "low"
   format = "video" # "audio", "video" or "custom"
   # When format = "custom"

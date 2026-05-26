@@ -2,12 +2,26 @@ package builder
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/yangtfu/podsync/pkg/feed"
 )
+
+func isTemporaryBilibiliIntegrationError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	msg := err.Error()
+	return strings.Contains(msg, "request was banned") ||
+		strings.Contains(msg, "Temporary failure in name resolution") ||
+		strings.Contains(msg, "no such host") ||
+		strings.Contains(msg, "i/o timeout") ||
+		strings.Contains(msg, "connection reset")
+}
 
 func TestBilibili_BuildFeed(t *testing.T) {
 	builder, err := NewBilibiliBuilder()
@@ -24,6 +38,9 @@ func TestBilibili_BuildFeed(t *testing.T) {
 			fmt.Print(addr)
 
 			_feed, err := builder.Build(testCtx, &feed.Config{URL: addr})
+			if isTemporaryBilibiliIntegrationError(err) {
+				t.Skipf("skipping Bilibili integration test due to temporary API/network error: %v", err)
+			}
 			require.NoError(t, err)
 
 			assert.NotEmpty(t, _feed.Title)

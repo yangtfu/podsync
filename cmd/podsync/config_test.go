@@ -34,6 +34,7 @@ timeout = 15
   url = "https://youtube.com/watch?v=ygIUF678y40"
   page_size = 48
   update_period = "5h"
+  update_delay = "45s"
   format = "audio"
   quality = "low"
 	# duration filters are in seconds
@@ -77,6 +78,7 @@ timeout = 15
 	assert.Equal(t, "https://youtube.com/watch?v=ygIUF678y40", feed.URL)
 	assert.EqualValues(t, 48, feed.PageSize)
 	assert.EqualValues(t, 5*time.Hour, feed.UpdatePeriod)
+	assert.EqualValues(t, 45*time.Second, feed.UpdateDelay)
 	assert.EqualValues(t, "audio", feed.Format)
 	assert.EqualValues(t, "low", feed.Quality)
 	assert.EqualValues(t, "regex for title here", feed.Filters.Title)
@@ -148,10 +150,30 @@ data_dir = "/data"
 	require.True(t, ok)
 
 	assert.EqualValues(t, feed.UpdatePeriod, model.DefaultUpdatePeriod)
+	assert.EqualValues(t, feed.UpdateDelay, model.DefaultUpdateDelay)
 	assert.EqualValues(t, feed.PageSize, 50)
 	assert.EqualValues(t, feed.Quality, "high")
 	assert.EqualValues(t, feed.Custom.CoverArtQuality, "high")
 	assert.EqualValues(t, feed.Format, "video")
+}
+
+func TestValidateUpdateDelay(t *testing.T) {
+	const file = `
+[server]
+data_dir = "/data"
+
+[feeds]
+  [feeds.A]
+  url = "https://youtube.com/watch?v=ygIUF678y40"
+  update_delay = "-1s"
+`
+	path := setup(t, file)
+	defer os.Remove(path)
+
+	config, err := LoadConfig(path)
+	assert.Error(t, err)
+	assert.Nil(t, config)
+	assert.Contains(t, err.Error(), "update_delay must be non-negative")
 }
 
 func TestHttpServerListenAddress(t *testing.T) {
