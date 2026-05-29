@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/pelletier/go-toml"
@@ -168,7 +170,7 @@ func (c *Config) applyDefaults(configPath string) {
 		}
 
 		if _feed.UpdateDelay == 0 {
-			_feed.UpdateDelay = model.DefaultUpdateDelay
+			_feed.UpdateDelay = defaultUpdateDelay(_feed.URL)
 		}
 
 		if _feed.Quality == "" {
@@ -196,6 +198,21 @@ func (c *Config) applyDefaults(configPath string) {
 			_feed.Clean = c.Cleanup
 		}
 	}
+}
+
+func defaultUpdateDelay(feedURL string) time.Duration {
+	if isBilibiliFeedURL(feedURL) {
+		return model.DefaultBilibiliDelay
+	}
+	return model.DefaultUpdateDelay
+}
+
+func isBilibiliFeedURL(feedURL string) bool {
+	parsed, err := url.Parse(feedURL)
+	if err != nil {
+		return false
+	}
+	return strings.HasSuffix(parsed.Hostname(), "bilibili.com")
 }
 
 func (c *Config) applyEnv() {

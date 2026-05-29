@@ -158,6 +158,27 @@ data_dir = "/data"
 	assert.True(t, feed.IsEnabled())
 }
 
+func TestApplyBilibiliDefaultUpdateDelay(t *testing.T) {
+	const file = `
+[server]
+data_dir = "/data"
+
+[feeds]
+  [feeds.A]
+  url = "https://space.bilibili.com/570064"
+`
+	path := setup(t, file)
+	defer os.Remove(path)
+
+	config, err := LoadConfig(path)
+	assert.NoError(t, err)
+	assert.NotNil(t, config)
+
+	feed, ok := config.Feeds["A"]
+	require.True(t, ok)
+	assert.EqualValues(t, model.DefaultBilibiliDelay, feed.UpdateDelay)
+}
+
 func TestLoadDisabledFeed(t *testing.T) {
 	const file = `
 [server]

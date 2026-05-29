@@ -79,8 +79,9 @@ vimeo = [ # Multiple keys will be rotated.
   update_period = "12h"
 
   # Maximum random delay before this feed update runs after it is queued.
-  # For example, "10m" waits a random duration from 0 to 10 minutes each time.
-  update_delay = "10m"
+  # For example, "2m" waits a random duration from 0 to 2 minutes each time.
+  # Defaults to "2m" for most feeds and a longer "15m" for Bilibili feeds.
+  update_delay = "2m"
 
   quality = "high" # "high" or "low"
   format = "video" # "audio", "video" or "custom"

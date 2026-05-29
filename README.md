@@ -92,8 +92,8 @@ youtube = "PASTE YOUR API KEY HERE" # See config.toml.example for environment va
   url = "https://www.youtube.com/channel/UCxC5Ls6DwqV0e-CYcAKkExQ"
 ```
 
-When multiple feeds are queued, Podsync waits a random `0-10m` before each feed update by default. You can tune
-the maximum random delay per feed:
+When multiple feeds are queued, Podsync waits a random `0-2m` before most feed updates by default. Bilibili feeds
+default to `0-15m` because that API is more sensitive to bursty requests. You can tune the maximum random delay per feed:
 
 ```toml
 [feeds]

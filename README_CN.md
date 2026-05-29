@@ -75,7 +75,7 @@ youtube = "PASTE YOUR API KEY HERE" # 环境变量示例请参见 config.toml.ex
   url = "https://www.youtube.com/channel/UCxC5Ls6DwqV0e-CYcAKkExQ"
 ```
 
-多个订阅源排队更新时，Podsync 会在每个 feed 更新前默认随机等待 `0-10m`，避免所有来源在同一时间集中请求。可按 feed 调整最大随机等待时间：
+多个订阅源排队更新时，Podsync 会在大多数 feed 更新前默认随机等待 `0-2m`。Bilibili feed 默认使用更长的 `0-15m`，因为这个 API 对集中请求更敏感。可按 feed 调整最大随机等待时间：
 
 ```toml
 [feeds]
