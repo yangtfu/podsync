@@ -36,3 +36,4 @@ podsync.log
 db
 config.toml
 data/
+scripts/*

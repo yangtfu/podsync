@@ -75,14 +75,14 @@ youtube = "PASTE YOUR API KEY HERE" # 环境变量示例请参见 config.toml.ex
   url = "https://www.youtube.com/channel/UCxC5Ls6DwqV0e-CYcAKkExQ"
 ```
 
-多个订阅源排队更新时，Podsync 会在相邻 feed 之间默认随机等待 `0-2m`，避免所有来源在同一时间集中请求。可按 feed 调整最大随机等待时间：
+多个订阅源排队更新时，Podsync 会在每个 feed 更新前默认随机等待 `0-10m`，避免所有来源在同一时间集中请求。可按 feed 调整最大随机等待时间：
 
 ```toml
 [feeds]
   [feeds.bilibili]
   url = "https://space.bilibili.com/35195926"
   update_period = "12h"
-  update_delay = "3m"
+  update_delay = "15m"
 ```
 
 若运行在反向代理（nginx、Caddy 等）之后，请设置 `hostname` 以便生成的节目链接指向对外域名：

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"strings"
 	"time"
@@ -35,6 +36,8 @@ const (
 	SeriesEpisodesAPI = "https://api.bilibili.com/x/series/archives?mid=%s&series_id=%s&ps=%d&pn=%d"
 
 	MaxBilibiliPageSize = 100
+
+	maxBilibiliRequestAttempts = 2
 )
 
 // APIClient API客户端
@@ -94,6 +97,28 @@ func (c *APIClient) setRequestHeaders(req *http.Request) {
 
 // DoRequest 发送API请求并解析响应
 func (c *APIClient) DoRequest(endpoint, url string, result any) error {
+	var lastErr error
+
+	for attempt := 1; attempt <= maxBilibiliRequestAttempts; attempt++ {
+		if attempt > 1 {
+			sleep := time.Minute + time.Duration(rand.Intn(60))*time.Second
+			time.Sleep(sleep)
+		}
+
+		err := c.doRequestOnce(endpoint, url, result)
+		if err == nil {
+			return nil
+		}
+		lastErr = err
+		if !isRetriableBilibiliAPIError(err) {
+			return err
+		}
+	}
+
+	return lastErr
+}
+
+func (c *APIClient) doRequestOnce(endpoint, url string, result any) error {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return fmt.Errorf("创建请求失败 endpoint=%s url=%s: %w", endpoint, url, err)
@@ -134,6 +159,14 @@ func (c *APIClient) DoRequest(endpoint, url string, result any) error {
 	}
 
 	return nil
+}
+
+func isRetriableBilibiliAPIError(err error) bool {
+	apiErr, ok := err.(bilibiliAPIError)
+	if !ok {
+		return false
+	}
+	return apiErr.StatusCode == http.StatusPreconditionFailed && apiErr.Code == -412
 }
 
 // 剧集信息API响应结构体

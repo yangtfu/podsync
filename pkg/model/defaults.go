@@ -9,7 +9,7 @@ const (
 	DefaultQuality       = QualityHigh
 	DefaultPageSize      = 50
 	DefaultUpdatePeriod  = 6 * time.Hour
-	DefaultUpdateDelay   = 2 * time.Minute
+	DefaultUpdateDelay   = 10 * time.Minute
 	DefaultLogMaxSize    = 50 // megabytes
 	DefaultLogMaxAge     = 30 // days
 	DefaultLogMaxBackups = 7

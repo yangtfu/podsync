@@ -51,8 +51,7 @@ var (
 )
 
 type updateSpacer struct {
-	rng  *rand.Rand
-	seen bool
+	rng *rand.Rand
 }
 
 func newUpdateSpacer() *updateSpacer {
@@ -77,11 +76,6 @@ func sortedFeeds(feeds map[string]*feed.Config) []*feed.Config {
 }
 
 func (s *updateSpacer) Wait(ctx context.Context, feedConfig *feed.Config) error {
-	if !s.seen {
-		s.seen = true
-		return nil
-	}
-
 	if feedConfig.UpdateDelay <= 0 {
 		return nil
 	}
